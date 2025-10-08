@@ -1,36 +1,21 @@
 package main
 
 import (
-	"context"
 	"log"
-	"time"
-
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	mongoutil "real_time_chat/internal/mongo"
+	redisutil "real_time_chat/internal/redis"
 )
 
 func main() {
-	db, err := ConnectMongoDB("mongodb://localhost:27017", "chatdb")
+	db, err := mongoutil.ConnectMongoDB("mongodb://localhost:27017", "chatdb")
 	if err != nil {
 		log.Fatal(err)
 	}
+	redis := redisutil.NewRedisClient()
 
-	server := NewServer(":8080", db)
+	server := NewServer(":8080", db, redis)
 	log.Println("Gateway running on port 8080")
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func ConnectMongoDB(URI, dbName string) (*mongo.Database, error) {
-	client, err := mongo.NewClient(options.Client().ApplyURI(URI))
-	if err != nil {
-		return nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := client.Connect(ctx); err != nil {
-		return nil, err
-	}
-	return client.Database(dbName), nil
 }

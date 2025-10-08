@@ -1,11 +1,8 @@
 package websocket
 
-import "time"
-
 type Message struct {
-	Text      string    `json:"text"`
-	Sender    string    `json:"sender"`
-	Receiver  string    `json:"receiver"`
-	Type      string    `json:"type"`
-	Timestamp time.Time `json:"timestamp"`
+	SenderID   string `json:"sender_id"`
+	ReceiverID string `json:"receiver_id"`
+	Content    string `json:"content"`
+	Timestamp  int64  `json:"timestamp,omitempty"`
 }

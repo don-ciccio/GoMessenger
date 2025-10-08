@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   mongo:
@@ -11,6 +11,15 @@ services:
       MONGO_INITDB_DATABASE: chatdb
     volumes:
       - mongo_data:/data/db
+  redis:
+    image: redis:7.2
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
 volumes:
   mongo_data:
+  redis_data:

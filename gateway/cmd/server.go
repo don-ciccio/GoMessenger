@@ -5,21 +5,25 @@ import (
 	"real_time_chat/internal/auth"
 	"real_time_chat/internal/websocket"
 
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Server struct {
 	addr string
 	db   *mongo.Database
+	rdb  *redis.Client
 }
 
-func NewServer(addr string, db *mongo.Database) *Server {
-	return &Server{addr: addr, db: db}
+func NewServer(addr string, db *mongo.Database, rdb *redis.Client) *Server {
+	return &Server{addr: addr, db: db, rdb: rdb}
 }
 
 func (s *Server) Start() error {
 	mux := http.NewServeMux()
-	mux.Handle("GET /ws", auth.JWTMiddleware(http.HandlerFunc(websocket.WsHandler)))
+
+	wsHandler := websocket.NewWsHandler(websocket.NewService(s.rdb))
+	mux.Handle("GET /ws", auth.JWTMiddleware(http.HandlerFunc(wsHandler.WsHandler)))
 
 	authHandler := auth.NewHandler(auth.NewService(auth.NewRepository(s.db)))
 
