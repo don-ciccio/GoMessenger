@@ -48,13 +48,10 @@ func GetUserIDFromRequest(r *http.Request) (string, error) {
 		return "", fmt.Errorf("authorization header missing")
 	}
 
-	// Remove o "Bearer "
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 	tokenString = strings.TrimSpace(tokenString)
 
-	// Faz o parse e valida o token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// garante que o método de assinatura é o esperado
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
@@ -64,7 +61,6 @@ func GetUserIDFromRequest(r *http.Request) (string, error) {
 		return "", fmt.Errorf("invalid token: %w", err)
 	}
 
-	// Extrai os claims
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		if userID, ok := claims["userId"].(string); ok {
 			return userID, nil

@@ -1,4 +1,4 @@
-package mongoutil
+package db
 
 import (
 	"context"

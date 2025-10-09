@@ -2,17 +2,16 @@ package main
 
 import (
 	"log"
-	redisutil "real_time_chat/internal/redis"
+	"real_time_chat/pkg/db"
 )
 
 func main() {
-	db, err := db.NewMongoClient("mongodb://localhost:27017", "chatdb")
+	a, err := db.NewMongoClient("mongodb://localhost:27017", "userdb")
 	if err != nil {
 		log.Fatal(err)
 	}
-	redis := redisutil.NewRedisClient()
 
-	server := NewServer(":8080", db, redis)
+	server := NewServer(":8080", db)
 	log.Println("Gateway running on port 8080")
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
