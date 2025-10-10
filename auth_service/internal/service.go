@@ -4,25 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
-	"google.golang.org/grpc"
-
-	"github.com/Miguel-Pezzini/real_time_chat/auth_service/proto"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Service struct {
-	client proto.AuthServiceClient
+	repo Repository
 }
 
-func NewService(address string) *Service {
-	conn, err := grpc.NewClient(address, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(5*time.Second))
-	if err != nil {
-		return nil, err
-	}
-	client := proto.NewAuthServiceClient(conn)
-	return &AuthClient{client: client}, nil
+func NewService(repo Repository) *Service {
+	return &Service{repo: repo}
 }
 
 var ErrUserAlredyExists = errors.New("User Alredy Exists")

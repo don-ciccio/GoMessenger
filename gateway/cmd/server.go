@@ -2,9 +2,9 @@ package main
 
 import (
 	"net/http"
-	"real_time_chat/internal/auth"
-	"real_time_chat/internal/websocket"
 
+	"github.com/Miguel-Pezzini/real_time_chat/gateway/internal/auth"
+	"github.com/Miguel-Pezzini/real_time_chat/gateway/internal/websocket"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )

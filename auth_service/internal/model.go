@@ -13,17 +13,3 @@ type UserMongo struct {
 	Username string             `bson:"name" json:"username"`
 	Password string             `bson:"email" json:"password"`
 }
-
-type RegisterUserRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type LoginUserRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type AuthResponse struct {
-	Token string `json:"token"`
-}

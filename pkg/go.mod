@@ -1,4 +1,4 @@
-module pkg
+module github.com/Miguel-Pezzini/real_time_chat/pkg
 
 go 1.25.1
 

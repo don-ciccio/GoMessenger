@@ -13,6 +13,20 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
+type RegisterUserRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginUserRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type AuthResponse struct {
+	Token string `json:"token"`
+}
+
 func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var req LoginUserRequest

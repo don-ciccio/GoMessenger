@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"real_time_chat/internal/auth"
+
 	"sync"
 
+	"github.com/Miguel-Pezzini/real_time_chat/gateway/internal/auth"
 	"github.com/gorilla/websocket"
 )
 
