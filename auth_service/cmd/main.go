@@ -11,9 +11,9 @@ import (
 )
 
 func main() {
-	mongoDB, err := db.NewMongoClient("mongodb://localhost:27017", "userdb")
+	mongoDB, err := db.NewMongoClient("mongodb://localhost:27019", "userdb")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to connecting to mongo database: %v", err)
 	}
 
 	lis, err := net.Listen("tcp", ":50051")

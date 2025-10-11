@@ -13,9 +13,12 @@ func NewMongoClient(URI, dbName string) (*mongo.Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	if err := client.Connect(ctx); err != nil {
+		return nil, err
+	}
+	if err := client.Ping(ctx, nil); err != nil {
 		return nil, err
 	}
 	return client.Database(dbName), nil
