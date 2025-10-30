@@ -1,6 +1,6 @@
 # 💬 Real-Time Chat Backend in Go
 
-A **real-time chat platform** built with **Go**, designed to explore advanced backend engineering concepts — including caching, messaging, rate limiting, observability, end-to-end testing, and NoSQL databases.
+The GoMessenger is a **real-time chat platform** built with **Go**, designed to explore advanced backend engineering concepts — including caching, messaging, rate limiting, observability, end-to-end testing, and NoSQL databases.
 
 ---
 
@@ -16,7 +16,6 @@ A **real-time chat platform** built with **Go**, designed to explore advanced ba
 | Observability      | Prometheus, Grafana, OpenTelemetry, Jaeger               |
 | Authentication     | JWT                                                      |
 | End-to-End Testing | testcontainers-go + testify                              |
-| Infrastructure     | Docker Compose / AWS (S3, SQS, CloudWatch)               |
 
 ---
 
@@ -141,18 +140,6 @@ Using **testcontainers-go**, the E2E tests:
 
 ---
 
-## ☁️ Optional AWS Integrations
-
-| Service        | Purpose                                  |
-| -------------- | ---------------------------------------- |
-| **S3**         | Store chat attachments (images, files).  |
-| **SQS**        | Replace RabbitMQ with managed messaging. |
-| **CloudWatch** | Centralized logs and metrics.            |
-| **DynamoDB**   | Store chat history and sessions.         |
-| **Lambda**     | Asynchronous notifications or analytics. |
-
----
-
 ## 🧰 Getting Started
 
 ### Prerequisites
@@ -185,11 +172,10 @@ go run ./cmd/presence
 ✅ Real-time communication with WebSocket
 ✅ Distributed cache and Pub/Sub (Redis)
 ✅ Asynchronous messaging (RabbitMQ/NATS/SQS)
-✅ Rate limiting and connection control
-✅ Full observability (logs, metrics, tracing)
-✅ End-to-end integration testing
+WIP: Rate limiting and connection control
+WIP: Full observability (logs, metrics, tracing)
+WIP: End-to-end integration testing 
 ✅ Event-driven microservice architecture
-✅ AWS-ready cloud integration
 
 ---
 
