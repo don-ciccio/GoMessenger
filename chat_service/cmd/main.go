@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/Miguel-Pezzini/real_time_chat/chat_service/internal/mongo"
-	db "github.com/Miguel-Pezzini/real_time_chat/pkg/db"
+	"github.com/Miguel-Pezzini/real_time_chat/chat_service/internal/redis"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connecting to chat database: %v", err)
 	}
-	redisClient, err := db.NewRedisClient()
+	redisClient, err := redis.NewRedisClient()
 	if err != nil {
 		log.Fatal("error connecting with redis", err)
 	}

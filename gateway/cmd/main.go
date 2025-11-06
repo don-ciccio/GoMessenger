@@ -4,11 +4,11 @@ import (
 	"log"
 
 	"github.com/Miguel-Pezzini/real_time_chat/gateway/internal/auth"
-	db "github.com/Miguel-Pezzini/real_time_chat/pkg/db"
+	"github.com/Miguel-Pezzini/real_time_chat/gateway/internal/redis"
 )
 
 func main() {
-	redisClient, err := db.NewRedisClient()
+	redisClient, err := redis.NewRedisClient()
 	if err != nil {
 		log.Fatal("error connecting with redis", err)
 	}
