@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/Miguel-Pezzini/real_time_chat/chat_service/internal/mongo"
-	"github.com/Miguel-Pezzini/real_time_chat/chat_service/internal/redis"
+	"github.com/Miguel-Pezzini/real_time_chat/chat_service/internal/redisutil"
 )
 
 func main() {
@@ -12,13 +12,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connecting to chat database: %v", err)
 	}
-	redisClient, err := redis.NewRedisClient()
+	redisClient, err := redisutil.NewRedisClient()
 	if err != nil {
 		log.Fatal("error connecting with redis", err)
 	}
 	log.Println("Gateway connected with Authentication Service")
 
-	server := NewServer(":8080", redisClient)
+	server := NewServer(":8080", redisClient, mongoDB)
 	log.Println("Gateway running on port 8080")
 	if err := server.Start(); err != nil {
 		log.Fatal(err)

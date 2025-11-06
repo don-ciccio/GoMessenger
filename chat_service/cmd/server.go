@@ -4,17 +4,18 @@ import (
 	"net/http"
 
 	"github.com/Miguel-Pezzini/real_time_chat/gateway/internal/auth"
-	authpb "github.com/Miguel-Pezzini/real_time_chat/gateway/internal/pb"
 	"github.com/redis/go-redis/v9"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Server struct {
-	addr string
-	rdb  *redis.Client
+	addr  string
+	rdb   *redis.Client
+	mongo *mongo.Database
 }
 
-func NewServer(addr string, rdb *redis.Client, auth_service authpb.AuthServiceClient) *Server {
-	return &Server{addr: addr, rdb: rdb}
+func NewServer(addr string, rdb *redis.Client, mongo *mongo.Database) *Server {
+	return &Server{addr: addr, rdb: rdb, mongo: mongo}
 }
 
 func (s *Server) Start() error {

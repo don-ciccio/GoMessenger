@@ -5,5 +5,5 @@ import (
 )
 
 type Repository interface {
-	Create(ctx context.Context, message Message) (*Message, error)
+	Create(ctx context.Context, messageDB MessageDB) (*MessageDB, error)
 }
