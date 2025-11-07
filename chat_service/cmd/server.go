@@ -39,7 +39,7 @@ func (s *Server) Start() error {
 
 	streamName := "chat.created"
 
-	go func() {
+	func() {
 		for {
 			streams, err := s.rdb.XRead(ctx, &redis.XReadArgs{
 				Streams: []string{streamName, "0"},
