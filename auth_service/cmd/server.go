@@ -12,8 +12,14 @@ type Server struct {
 	service *auth.Service
 }
 
-func NewServer(service *auth.Service) *Server {
-	return &Server{service: service}
+func NewServer() (*Server, error) {
+	mongoDB, err := NewMongoClient("mongodb://localhost:27019", "userdb")
+	if err != nil {
+		return nil, err
+	}
+	repo := auth.NewMongoRepository(mongoDB)
+	svc := auth.NewService(repo)
+	return &Server{service: svc}, nil
 }
 
 func (s *Server) Register(ctx context.Context, req *authpb.RegisterRequest) (*authpb.RegisterResponse, error) {

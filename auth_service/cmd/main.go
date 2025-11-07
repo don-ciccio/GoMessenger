@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	auth "github.com/Miguel-Pezzini/real_time_chat/auth_service/internal"
 	authpb "github.com/Miguel-Pezzini/real_time_chat/auth_service/internal/pb/auth"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -14,9 +13,9 @@ import (
 )
 
 func main() {
-	mongoDB, err := NewMongoClient("mongodb://localhost:27019", "userdb")
+	srv, err := NewServer()
 	if err != nil {
-		log.Fatalf("failed to connecting to mongo database: %v", err)
+		log.Fatalf("failed to initialize server: %v", err)
 	}
 
 	lis, err := net.Listen("tcp", ":50051")
@@ -25,7 +24,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	authpb.RegisterAuthServiceServer(grpcServer, NewServer(auth.NewService(auth.NewMongoRepository(mongoDB))))
+	authpb.RegisterAuthServiceServer(grpcServer, srv)
 
 	log.Println("AuthService rodando na porta 50051")
 	if err := grpcServer.Serve(lis); err != nil {
