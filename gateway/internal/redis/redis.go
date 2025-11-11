@@ -3,6 +3,7 @@ package redisutil
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -21,4 +22,16 @@ func NewRedisClient() (*redis.Client, error) {
 	}
 
 	return client, nil
+}
+
+type RedisConfig struct {
+	StreamChat  string
+	ChannelChat string
+}
+
+func LoadRedisConfig() *RedisConfig {
+	return &RedisConfig{
+		StreamChat:  os.Getenv("REDIS_STREAM_CHAT"),
+		ChannelChat: os.Getenv("REDIS_CHANNEL_CHAT"),
+	}
 }

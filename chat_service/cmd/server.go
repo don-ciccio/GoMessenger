@@ -15,9 +15,10 @@ import (
 )
 
 type Server struct {
-	addr  string
-	rdb   *redis.Client
-	mongo *mongo.Database
+	addr        string
+	rdb         *redis.Client
+	mongo       *mongo.Database
+	redisConfig *redisutil.RedisConfig
 }
 
 func NewServer(addr string) *Server {
@@ -29,7 +30,8 @@ func NewServer(addr string) *Server {
 	if err != nil {
 		log.Fatal("error connecting with redis", err)
 	}
-	return &Server{addr: addr, rdb: rdb, mongo: mongo}
+	redisConfig := redisutil.LoadRedisConfig()
+	return &Server{addr: addr, rdb: rdb, mongo: mongo, redisConfig: redisConfig}
 }
 
 func (s *Server) Start() error {
@@ -37,7 +39,7 @@ func (s *Server) Start() error {
 	ctx := context.Background()
 	service := chat.NewService(chat.NewMongoRepository(s.mongo))
 
-	streamName := "message.created"
+	streamName := s.redisConfig.StreamChat
 
 	func() {
 		for {
