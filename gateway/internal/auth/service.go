@@ -17,12 +17,12 @@ func NewService(client authpb.AuthServiceClient) *Service {
 
 var ErrUserAlredyExists = errors.New("User Alredy Exists")
 
-func (s *Service) Register(ctx context.Context, req authpb.RegisterRequest) (string, error) {
-	res, err := s.client.Register(ctx, &req)
+func (s *Service) Register(ctx context.Context, req *authpb.RegisterRequest) (string, error) {
+	res, err := s.client.Register(ctx, req)
 	return res.Token, err
 }
 
-func (s *Service) Authenticate(ctx context.Context, req authpb.LoginRequest) (string, error) {
-	res, err := s.client.Login(ctx, &req)
+func (s *Service) Authenticate(ctx context.Context, req *authpb.LoginRequest) (string, error) {
+	res, err := s.client.Login(ctx, req)
 	return res.Token, err
 }

@@ -28,6 +28,6 @@ func (r *MongoRepository) Create(ctx context.Context, message *MessageDB) (*Mess
 	if !ok {
 		return nil, fmt.Errorf("failed to convert inserted ID")
 	}
-	message.Id = int(oid.Timestamp().Unix())
+	message.Id = string(oid.Timestamp().Unix())
 	return message, nil
 }

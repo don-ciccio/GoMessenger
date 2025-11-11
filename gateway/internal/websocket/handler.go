@@ -14,7 +14,7 @@ import (
 
 type WsHandler struct {
 	service  *Service
-	clients  map[int]*websocket.Conn
+	clients  map[string]*websocket.Conn
 	clientsM sync.RWMutex
 }
 
@@ -27,7 +27,7 @@ var upgrader = websocket.Upgrader{
 func NewWsHandler(service *Service) *WsHandler {
 	return &WsHandler{
 		service: service,
-		clients: make(map[int]*websocket.Conn),
+		clients: make(map[string]*websocket.Conn),
 	}
 }
 
@@ -37,8 +37,8 @@ func (h *WsHandler) HandleConnection(w http.ResponseWriter, r *http.Request) {
 		log.Println("Erro ao fazer upgrade:", err)
 		return
 	}
-	userID := r.Context().Value(auth.UserIDKey).(int)
-	if userID == 0 {
+	userID := r.Context().Value(auth.UserIDKey).(string)
+	if userID == "" {
 		conn.WriteMessage(websocket.TextMessage, []byte("user query param required"))
 		conn.Close()
 		return

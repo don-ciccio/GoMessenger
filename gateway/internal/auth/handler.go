@@ -34,7 +34,7 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var req authpb.LoginRequest
 	_ = json.NewDecoder(r.Body).Decode(&req)
 
-	token, err := h.service.Authenticate(r.Context(), req)
+	token, err := h.service.Authenticate(r.Context(), &req)
 	if err != nil {
 		http.Error(w, `{"error":"Invalid credentials"}`, http.StatusUnauthorized)
 		return
@@ -47,7 +47,7 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var req authpb.RegisterRequest
 	_ = json.NewDecoder(r.Body).Decode(&req)
 
-	token, err := h.service.Register(r.Context(), req)
+	token, err := h.service.Register(r.Context(), &req)
 	switch {
 	case err == ErrUserAlredyExists:
 		http.Error(w, `{"error":"User already exists"}`, http.StatusForbidden)

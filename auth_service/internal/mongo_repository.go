@@ -35,7 +35,7 @@ func (r *MongoRepository) Create(ctx context.Context, registerUserRequest *authp
 	}
 
 	user := &User{
-		ID:       int(userMongo.ID.Timestamp().Unix()),
+		ID:       string(userMongo.ID.Timestamp().Unix()),
 		Username: userMongo.Username,
 		Password: userMongo.Password,
 	}
