@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	chat "github.com/Miguel-Pezzini/real_time_chat/chat_service/internal"
@@ -82,7 +83,7 @@ func (s *Server) Start() error {
 						continue
 					}
 
-					channel := "message.created"
+					channel := os.Getenv("REDIS_CHANNEL_CHAT")
 					if err := s.rdb.Publish(ctx, channel, res).Err(); err != nil {
 						log.Println("failed to publish to gateway channel:", err)
 						continue

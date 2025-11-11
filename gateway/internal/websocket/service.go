@@ -25,6 +25,10 @@ func (s *Service) HandleIncoming(payload string) {
 	}
 }
 
+func (s *Service) SubscribeChatChannel(channelName string, handler func(string)) {
+	s.repo.Subscribe(channelName, handler)
+}
+
 func (s *Service) PersistMessage(msg MessageRequest) error {
 	payload, _ := json.Marshal(msg)
 

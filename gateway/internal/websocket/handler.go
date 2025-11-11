@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"sync"
 
@@ -62,4 +63,24 @@ func (h *WsHandler) HandleConnection(w http.ResponseWriter, r *http.Request) {
 		}
 		h.service.PersistMessage(msg)
 	}
+}
+
+func (h *WsHandler) StartPubSubListener() {
+	h.service.SubscribeChatChannel(os.Getenv("REDIS_CHANNEL_CHAT"), func(payload string) {
+		var msg MessageResponse
+		if err := json.Unmarshal([]byte(payload), &msg); err != nil {
+			log.Println("Erro ao parsear mensagem Pub/Sub:", err)
+			return
+		}
+
+		h.clientsM.Lock()
+		defer h.clientsM.Unlock()
+
+		if conn, ok := h.clients[msg.ReceiverID]; ok {
+			conn.WriteJSON(msg)
+		}
+		if conn, ok := h.clients[msg.SenderID]; ok {
+			conn.WriteJSON(msg)
+		}
+	})
 }
