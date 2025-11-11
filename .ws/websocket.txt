@@ -1,0 +1,8 @@
+user1_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjI5MTM2MDAsInVzZXJJZCI6Iu-_vSJ9.NaZvvF6M3uYXOJXpvUV288RpoPVvWeVqIALTf1tkNd4
+user1_id = 69129bc00ff1c53e795fbd44
+
+user2_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjI5MTM2MjUsInVzZXJJZCI6Iu-_vSJ9.2LngWB5cP4fjHbCtInOefQfMTL7XLZZIxcL8qet-VbY
+user2_id = 69129bd90ff1c53e795fbd45
+
+
+{"receiver_id":"69129bd90ff1c53e795fbd45","content":"Oi! Está recebendo?","timestamp":1731285600}
