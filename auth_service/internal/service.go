@@ -32,7 +32,6 @@ func (s *Service) Register(req *authpb.RegisterRequest) (*authpb.RegisterRespons
 	if err != nil {
 		return &authpb.RegisterResponse{}, err
 	}
-	println(userCreated.ID)
 	token, err := createToken(userCreated.ID)
 	return &authpb.RegisterResponse{Token: token}, err
 }

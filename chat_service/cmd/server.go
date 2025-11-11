@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -57,7 +56,6 @@ func (s *Server) Start() error {
 
 			for _, st := range streams {
 				for _, msg := range st.Messages {
-					fmt.Printf("ID: %s, Values: %v\n", msg.ID, msg.Values)
 
 					rawData, ok := msg.Values["data"].(string)
 					if !ok {
