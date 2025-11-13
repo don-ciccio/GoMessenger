@@ -11,7 +11,7 @@ The GoMessenger is a **real-time chat platform** built with **Go**, designed to 
 | Language           | Go (Golang)                                              |
 | Communication      | WebSocket (`gorilla/websocket` or `nhooyr.io/websocket`) |
 | Cache / Sessions   | Redis                                                    |
-| Messaging          | RabbitMQ | Redis                                         |
+| Messaging          | Redis Streams                                            |
 | Database           | MongoDB                                                  |
 | Observability      | Prometheus, Grafana                                      |
 | Authentication     | JWT                                                      |
