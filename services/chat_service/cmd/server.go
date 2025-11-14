@@ -7,9 +7,9 @@ import (
 	"os"
 	"time"
 
-	chat "github.com/Miguel-Pezzini/real_time_chat/chat_service/internal"
-	mongoutils "github.com/Miguel-Pezzini/real_time_chat/chat_service/internal/mongo"
-	redisutil "github.com/Miguel-Pezzini/real_time_chat/chat_service/internal/redis"
+	chat "github.com/Miguel-Pezzini/GoMessenger/services/chat_service/internal"
+	mongoutils "github.com/Miguel-Pezzini/GoMessenger/services/chat_service/internal/mongo"
+	redisutil "github.com/Miguel-Pezzini/GoMessenger/services/chat_service/internal/redis"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )

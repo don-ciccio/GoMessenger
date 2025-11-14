@@ -1,10 +1,10 @@
-module github.com/Miguel-Pezzini/real_time_chat/services/chat_service
+module github.com/Miguel-Pezzini/GoMessenger/services/chat_service
 
 go 1.25.1
 
 require (
-	github.com/Miguel-Pezzini/real_time_chat/gateway v0.0.0-20251030120033-98c6d4b7f097
-	github.com/Miguel-Pezzini/real_time_chat/pkg v0.0.0-00010101000000-000000000000
+	github.com/Miguel-Pezzini/GoMessenger/gateway v0.0.0-20251030120033-98c6d4b7f097
+	github.com/Miguel-Pezzini/GoMessenger/pkg v0.0.0-00010101000000-000000000000
 )
 
 require (

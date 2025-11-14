@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	authpb "github.com/Miguel-Pezzini/real_time_chat/gateway/internal/pb"
+	authpb "github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/pb"
 )
 
 type Service struct {

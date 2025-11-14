@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	authpb "github.com/Miguel-Pezzini/real_time_chat/auth_service/internal/pb/auth"
+	authpb "github.com/Miguel-Pezzini/GoMessenger/services/auth_service/internal/pb/auth"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"

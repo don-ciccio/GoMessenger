@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Miguel-Pezzini/real_time_chat/gateway/internal/auth"
-	authpb "github.com/Miguel-Pezzini/real_time_chat/gateway/internal/pb"
-	redisutil "github.com/Miguel-Pezzini/real_time_chat/gateway/internal/redis"
-	"github.com/Miguel-Pezzini/real_time_chat/gateway/internal/websocket"
+	"github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/auth"
+	authpb "github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/pb"
+	redisutil "github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/redis"
+	"github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/websocket"
 	"github.com/redis/go-redis/v9"
 )
 

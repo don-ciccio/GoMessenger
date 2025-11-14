@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 
-	auth "github.com/Miguel-Pezzini/real_time_chat/auth_service/internal"
-	authpb "github.com/Miguel-Pezzini/real_time_chat/auth_service/internal/pb/auth"
+	auth "github.com/Miguel-Pezzini/GoMessenger/services/auth_service/internal"
+	authpb "github.com/Miguel-Pezzini/GoMessenger/services/auth_service/internal/pb/auth"
 )
 
 type Server struct {
