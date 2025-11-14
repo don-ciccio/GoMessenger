@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	authpb "github.com/Miguel-Pezzini/GoMessenger/services/auth_service/internal/pb/auth"
+	authpb "github.com/Miguel-Pezzini/GoMessenger/services/auth_service/internal/pb"
 )
 
 type Repository interface {

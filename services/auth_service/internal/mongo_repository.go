@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	authpb "github.com/Miguel-Pezzini/GoMessenger/services/auth_service/internal/pb/auth"
+	authpb "github.com/Miguel-Pezzini/GoMessenger/services/auth_service/internal/pb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

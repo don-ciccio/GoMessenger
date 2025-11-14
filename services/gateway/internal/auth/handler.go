@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	authpb "github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/pb"
+	authpb "github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/pb/auth"
 )
 
 type Handler struct {

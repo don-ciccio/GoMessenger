@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/auth"
-	authpb "github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/pb"
+	authpb "github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/pb/auth"
 	redisutil "github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/redis"
 	"github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/websocket"
 	"github.com/redis/go-redis/v9"

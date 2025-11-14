@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	authpb "github.com/Miguel-Pezzini/GoMessenger/services/auth_service/internal/pb/auth"
+	authpb "github.com/Miguel-Pezzini/GoMessenger/services/auth_service/internal/pb"
 	"golang.org/x/crypto/bcrypt"
 )
 
