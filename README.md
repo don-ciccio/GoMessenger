@@ -81,6 +81,8 @@ git clone https://github.com/Miguel-Pezzini/GoMessenger.git
 # Start dependencies
 docker-compose up -d
 
+cd services
+
 # Run the gateway service
 go run ./gateway/cmd
 
