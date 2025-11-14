@@ -44,10 +44,17 @@ func (r *MongoRepository) Create(ctx context.Context, registerUserRequest *authp
 }
 
 func (r *MongoRepository) FindByUsername(ctx context.Context, username string) (*User, error) {
-	var user User
-	err := r.collection.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	var userMongo UserMongo
+	err := r.collection.FindOne(ctx, bson.M{"username": username}).Decode(&userMongo)
 	if err != nil {
 		return nil, err
 	}
-	return &user, nil
+
+	user := &User{
+		ID:       userMongo.ID.Hex(),
+		Username: userMongo.Username,
+		Password: userMongo.Password,
+	}
+
+	return user, nil
 }

@@ -4,7 +4,7 @@ POST http://localhost:8080/auth/login
 content-type: application/json
 
 {
-    "username": "user1",
+    "username": "user2",
     "password": "testpass"
 }
 
