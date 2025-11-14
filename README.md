@@ -19,19 +19,21 @@ The GoMessenger is a **real-time chat platform** built with **Go**, designed to 
 
 ---
 
-## 🧠 Core Services
+## Core Services
 
 ### 🔹 **Gateway Service**
 
-- Client endpoint service.
-- Handles WebSocket connections.
-- Applies **rate limiting** per user.
-- Publishes messages to the message queue.
+- Central entry point for all clients.
+- Manages WebSocket connections and session authentication (via JWT).
+- Applies **rate limiting** per user
+- Publishes messages to Redis Streams.
+- Forwards chat events received from the ChatService to connected users.
 
 ### 🔹 **Authentication Service**
 
-- Authenticates users via JWT and stores sessions in Redis.
-- Persist all users in NOSQL Database (Mongo)
+- Handles user registration and login (via gRPC and REST).
+- Issues JWT tokens and manages sessions in Redis.
+- Persists user data in MongoDB.
 
 ### 🔹 **Chat Service**
 
@@ -42,27 +44,28 @@ The GoMessenger is a **real-time chat platform** built with **Go**, designed to 
 
 ### 🔹 **Presence Service** WIP
 
-- Tracks online/offline user status using Redis.
-- Publishes presence updates to gateways.
+- Tracks real-time user presence (online/offline, current chat ID) with redis.
+- Stores connection state in Redis.
+- Publishes status changes to interested services (e.g., NotificationService).
 
 ### 🔹 **Notification Service** WIP
 
-- Processes asynchronous events from the queue.
-- Sends external notifications (push, email, or simulated logs).
-
+- Subscribes to chat and presence events.
+- Decides whether to send notifications based on user preferences and active status.
+- Handles asynchronous notification delivery (push, email, or simulated logs).
+  
 ---
 
-## ⚙️ Message Flow
+## Message Flow
 
-1. A user connects via WebSocket → authenticated via JWT.
-2. Session stored in Redis.
-3. User sends a message → published to the message queue (`chat.message.created`).
-4. Chat Service consumes, stores in MongoDB, and publishes via Redis Pub/Sub.
-5. Presence Service updates online/offline status.
-6. Observability tools track message latency and throughput.
+1. User connects via WebSocket → Authenticated through JWT (AuthService).
+2. Gateway stores session in Redis and registers presence.
+3. User sends a message → Gateway publishes to Redis Stream (`chat.message.created`).
+4. ChatService consumes, persists message in MongoDB, and publish via Redis Pub/Sub.
+5. PresenceService updates user activity and publishes online/offline changes.
+6. NotificationService receives events and sends external notifications if recipient is offline or inactive.
+7. Observability stack (Prometheus + Grafana) tracks latency, throughput, and errors across services.
 
----Miguel-Pezzini
-GoMessengerg Started
 
 ### Prerequisites
 
@@ -88,7 +91,7 @@ go run ./auth_service/cmd
 
 ---
 
-## 📚 Key Learning Outcomes
+## Key Learning Outcomes
 
 ✅ Real-time communication with WebSocket
 ✅ Distributed cache and Pub/Sub (Redis)
@@ -100,13 +103,13 @@ WIP: End-to-end integration testing
 
 ---
 
-## 🧑‍💻 Author
+## Author
 
 **Miguel P.**
 Backend developer focused on performance, scalability, and distributed systems using Go.
 
 ---
 
-## 🏗️ License
+## License
 
 This project is licensed under the MIT License — feel free to study, adapt, and improve it.
