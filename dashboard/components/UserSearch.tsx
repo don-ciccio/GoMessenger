@@ -28,7 +28,7 @@ export default function UserSearch({ currentUserId, onStartConversation }: UserS
 
     setIsSearching(true);
     try {
-      const response = await fetch(`http://localhost:8080/users/search?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/search?q=${encodeURIComponent(query)}`);
       if (response.ok) {
         const data = await response.json();
         // Filter out current user
@@ -45,7 +45,7 @@ export default function UserSearch({ currentUserId, onStartConversation }: UserS
   const handleSelectUser = async (user: User) => {
     // Create or get conversation with this user
     try {
-      const response = await fetch('http://localhost:8080/conversations', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/conversations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

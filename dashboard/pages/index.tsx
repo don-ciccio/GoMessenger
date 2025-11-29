@@ -126,7 +126,7 @@ export default function Home() {
     if (missingIds.length === 0) return;
 
     try {
-      const response = await fetch('http://localhost:8080/users/batch', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/batch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: missingIds })
@@ -148,7 +148,7 @@ export default function Home() {
 
   const fetchConversations = async (userId: string) => {
     try {
-      const response = await fetch(`http://localhost:8080/conversations?user_id=${userId}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/conversations?user_id=${userId}`);
       if (response.ok) {
         const data = await response.json();
         setConversations(data || []);
@@ -178,7 +178,7 @@ export default function Home() {
     
     // Load message history
     try {
-      const response = await fetch(`http://localhost:8080/conversations/${conversationId}/messages?limit=50`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/conversations/${conversationId}/messages?limit=50`);
       if (response.ok) {
         const data = await response.json();
         const loadedMessages: Message[] = (data || []).map((msg: any) => ({
