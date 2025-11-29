@@ -6,7 +6,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -o main ./cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd
 
 FROM alpine:latest
 WORKDIR /root/
