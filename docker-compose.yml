@@ -14,7 +14,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api-gateway.rule=(Host(`noboringcoffee.com`) || Host(`www.noboringcoffee.com`)) && PathPrefix(`/api`)"
-      - "traefik.http.routers.api-gateway.entrypoints=web"
+      - "traefik.http.routers.api-gateway.entrypoints=websecure"
+      - "traefik.http.routers.api-gateway.tls.certresolver=myresolver"
       - "traefik.http.routers.api-gateway.priority=100"
       - "traefik.http.routers.api-gateway.middlewares=api-stripprefix"
       - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
@@ -54,7 +55,7 @@ services:
     command:
       - "--api.insecure=true"
       - "--providers.docker"
-      - "providers.docker.exposedbydefault=false"
+      - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.email=danilo.dalessio@gmail.com"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
@@ -80,7 +81,7 @@ services:
     container_name: ai_support_dashboard
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_BACKEND_URL=http://noboringcoffee.com/api
+      - NEXT_PUBLIC_BACKEND_URL=https://noboringcoffee.com/api
       - BACKEND_URL=http://gateway:8080
       - HOSTNAME=0.0.0.0
     labels:
