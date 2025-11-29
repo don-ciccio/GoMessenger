@@ -1,48 +1,76 @@
 services:
-  # gateway:
-  #   build: ./gateway
-  #   container_name: gateway
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     - auth_service
-  #     - redis
-  #   environment:
-  #     - REDIS_URL=redis:6379
-  #   networks:
-  #     - chatnet
+  gateway:
+    build: ./services/gateway
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth_service
+      - redis
+    environment:
+      - REDIS_URL=redis:6379
+      - REDIS_CHANNEL_CHAT=chat_channel
+      - AUTH_SERVICE_ADDR=auth_service:50051
+      - CHAT_SERVICE_URL=http://chat_service:8081
+      - AUTH_SERVICE_HTTP_URL=http://auth_service:8082
+    networks:
+      - chatnet
 
-  # chat-service:
-  #   build: ./chat_service
-  #   container_name: chat_service
-  #   depends_on:
-  #     - redis
-  #     - mongo-chat
-  #   environment:
-  #     - REDIS_URL=redis:6379
-  #     - MONGO_URL=mongodb://mongo-chat:27017/chatdb
-  #   networks:
-  #     - chatnet
+  chat_service:
+    build: ./services/chat_service
+    container_name: chat_service
+    depends_on:
+      - redis
+      - mongo-chat
+    environment:
+      - REDIS_URL=redis:6379
+      - MONGO_URL=mongodb://mongo-chat:27017/chatdb
+      - REDIS_CHANNEL_CHAT=chat_channel
+    networks:
+      - chatnet
 
-  # auth_service:
-  #   build: ./auth_service
-  #   container_name: auth_service
-  #   ports:
-  #     - "50051:50051"
-  #   depends_on:
-  #     - redis
-  #     - mongo-user
-  #   environment:
-  #     - REDIS_URL=redis:6379
-  #     - MONGO_URL=mongodb://mongo-user:27017/userdb
-  #   networks:
-  #     - chatnet
+  auth_service:
+    build: ./services/auth_service
+    container_name: auth_service
+    ports:
+      - "50051:50051"
+    depends_on:
+      - redis
+      - mongo-user
+    environment:
+      - REDIS_URL=redis:6379
+      - MONGO_URL=mongodb://mongo-user:27017/userdb
+    networks:
+      - chatnet
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: ai_support_dashboard
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+      - BACKEND_URL=http://gateway:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - gateway
+    networks:
+      - chatnet
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redis:
     image: redis:7-alpine
     container_name: redis
     ports:
       - "6379:6379"
+    networks:
+      - chatnet
 
   mongo-chat:
     image: mongo:7
@@ -51,6 +79,8 @@ services:
       - "27018:27017"
     volumes:
       - mongo_chat_data:/data/db
+    networks:
+      - chatnet
 
   mongo-user:
     image: mongo:7
@@ -59,10 +89,14 @@ services:
       - "27019:27017"
     volumes:
       - mongo_user_data:/data/db
+    networks:
+      - chatnet
 
 volumes:
   mongo_chat_data:
   mongo_user_data:
-# networks:
-#   chatnet:
-#     driver: bridge
+
+
+networks:
+  chatnet:
+    driver: bridge

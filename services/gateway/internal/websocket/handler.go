@@ -56,8 +56,36 @@ func (h *WsHandler) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	h.clients[userID] = conn
 	h.clientsM.Unlock()
 
+	// Send list of online users to the new client
+	h.clientsM.Lock()
+	onlineUsers := make([]string, 0, len(h.clients))
+	for id := range h.clients {
+		onlineUsers = append(onlineUsers, id)
+	}
+	h.clientsM.Unlock()
+
+	conn.WriteJSON(map[string]interface{}{
+		"type":     "online_users",
+		"user_ids": onlineUsers,
+	})
+
+	// Broadcast online status to others
+	h.broadcastStatus(userID, true)
+
+	defer func() {
+		h.clientsM.Lock()
+		delete(h.clients, userID)
+		h.clientsM.Unlock()
+		conn.Close()
+
+		// Broadcast offline status
+		h.broadcastStatus(userID, false)
+	}()
+
+	// Start ping loop to keep connection alive
 	go h.startPingLoop(userID, conn)
 
+	// Listen for messages from client
 	for {
 		_, msgBytes, err := conn.ReadMessage()
 		if err != nil {
@@ -75,6 +103,7 @@ func (h *WsHandler) HandleConnection(w http.ResponseWriter, r *http.Request) {
 			{
 				var payload ChatMessagePayload
 				json.Unmarshal(gatewayMessage.Payload, &payload)
+				payload.Timestamp = time.Now().Unix()
 				h.service.PersistMessage(payload)
 			}
 		}
@@ -96,11 +125,21 @@ func (h *WsHandler) StartPubSubListener() {
 		h.clientsM.Lock()
 		defer h.clientsM.Unlock()
 
-		if conn, ok := h.clients[msg.ReceiverID]; ok {
-			conn.WriteJSON(msg)
+		// Send to all recipients (includes sender and other participants)
+		for _, recipientID := range msg.Recipients {
+			if conn, ok := h.clients[recipientID]; ok {
+				conn.WriteJSON(msg)
+			}
 		}
-		if conn, ok := h.clients[msg.SenderID]; ok {
-			conn.WriteJSON(msg)
+
+		// Fallback for backward compatibility or direct messages
+		if len(msg.Recipients) == 0 {
+			if conn, ok := h.clients[msg.ReceiverID]; ok {
+				conn.WriteJSON(msg)
+			}
+			if conn, ok := h.clients[msg.SenderID]; ok {
+				conn.WriteJSON(msg)
+			}
 		}
 	})
 }
@@ -119,5 +158,21 @@ func (h *WsHandler) startPingLoop(userID string, conn *websocket.Conn) {
 			conn.Close()
 			return
 		}
+	}
+}
+
+func (h *WsHandler) broadcastStatus(userID string, online bool) {
+	statusMsg := map[string]interface{}{
+		"type":      "user_status",
+		"user_id":   userID,
+		"online":    online,
+		"timestamp": time.Now().Unix(),
+	}
+
+	h.clientsM.Lock()
+	defer h.clientsM.Unlock()
+
+	for _, conn := range h.clients {
+		conn.WriteJSON(statusMsg)
 	}
 }

@@ -12,10 +12,11 @@ func NewService(repo Repository) *Service {
 
 func (s *Service) Create(ctx context.Context, req MessageRequest) (*MessageResponse, error) {
 	messageDB := &MessageDB{
-		SenderID:   req.SenderID,
-		ReceiverID: req.ReceiverID,
-		Content:    req.Content,
-		Timestamp:  req.Timestamp,
+		ConversationID: req.ConversationID,
+		SenderID:       req.SenderID,
+		ReceiverID:     req.ReceiverID,
+		Content:        req.Content,
+		Timestamp:      req.Timestamp,
 	}
 	result, err := s.repo.Create(ctx, messageDB)
 	if err != nil {

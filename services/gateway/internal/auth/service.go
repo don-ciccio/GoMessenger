@@ -23,6 +23,9 @@ func (s *Service) Register(ctx context.Context, req *authpb.RegisterRequest) (st
 }
 
 func (s *Service) Authenticate(ctx context.Context, req *authpb.LoginRequest) (string, error) {
-	res, err := s.client.Login(ctx, req)
-	return res.Token, err
+	resp, err := s.client.Login(ctx, req)
+	if err != nil {
+		return "", err
+	}
+	return resp.Token, nil
 }

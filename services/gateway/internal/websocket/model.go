@@ -19,9 +19,11 @@ type GatewayMessage struct {
 }
 
 type ChatMessagePayload struct {
-	SenderID   string `json:"sender_id"`
-	ReceiverID string `json:"receiver_id"`
-	Content    string `json:"content"`
+	ConversationID string `json:"conversation_id,omitempty"` // New: use conversation
+	SenderID       string `json:"sender_id"`
+	ReceiverID     string `json:"receiver_id,omitempty"` // Deprecated: for auto-creating conversation
+	Content        string `json:"content"`
+	Timestamp      int64  `json:"timestamp,omitempty"`
 }
 
 type TypingPayload struct {
@@ -41,9 +43,11 @@ type HeartbeatPayload struct {
 }
 
 type MessageResponse struct {
-	ID         string `json:"id"`
-	SenderID   string `json:"sender_id"`
-	ReceiverID string `json:"receiver_id"`
-	Content    string `json:"content"`
-	Timestamp  int64  `json:"timestamp,omitempty"`
+	ID             string   `json:"id"`
+	ConversationID string   `json:"conversation_id,omitempty"`
+	SenderID       string   `json:"sender_id"`
+	ReceiverID     string   `json:"receiver_id,omitempty"` // Deprecated
+	Recipients     []string `json:"recipients,omitempty"`  // List of user IDs to receive the message
+	Content        string   `json:"content"`
+	Timestamp      int64    `json:"timestamp,omitempty"`
 }

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoMessenger Chat Client</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"] { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 20px; cursor: pointer; }
+        #log { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; background: #f9f9f9; margin-top: 20px; }
+        .message { margin-bottom: 5px; }
+        .sent { color: blue; }
+        .received { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GoMessenger Chat Client</h1>
+        
+        <div class="input-group">
+            <label for="token">JWT Token:</label>
+            <input type="text" id="token" placeholder="Paste your JWT token here">
+        </div>
+        <div class="input-group">
+            <button onclick="connect()">Connect</button>
+        </div>
+
+        <hr>
+
+        <div class="input-group">
+            <label for="senderId">My User ID (Sender ID):</label>
+            <input type="text" id="senderId" placeholder="Your User ID">
+        </div>
+        <div class="input-group">
+            <label for="receiverId">Receiver ID:</label>
+            <input type="text" id="receiverId" placeholder="Target User ID">
+        </div>
+        <div class="input-group">
+            <label for="content">Message:</label>
+            <input type="text" id="content" placeholder="Type a message...">
+        </div>
+        <div class="input-group">
+            <button onclick="sendMessage()">Send Message</button>
+        </div>
+
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let ws;
+
+        function log(msg, type = '') {
+            const logDiv = document.getElementById('log');
+            const div = document.createElement('div');
+            div.className = 'message ' + type;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            logDiv.appendChild(div);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function connect() {
+            const token = document.getElementById('token').value.trim();
+            if (!token) {
+                log('Please enter a JWT token', 'error');
+                return;
+            }
+
+            if (ws) {
+                ws.close();
+            }
+
+            const url = `ws://localhost:8080/ws?token=${token}`;
+            log(`Connecting to ${url}...`);
+
+            ws = new WebSocket(url);
+
+            ws.onopen = () => {
+                log('Connected!', 'received');
+            };
+
+            ws.onmessage = (event) => {
+                log(`Received: ${event.data}`, 'received');
+            };
+
+            ws.onclose = (event) => {
+                log(`Disconnected (Code: ${event.code})`, 'error');
+            };
+
+            ws.onerror = (error) => {
+                log('WebSocket Error', 'error');
+                console.error(error);
+            };
+        }
+
+        function sendMessage() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                log('Not connected', 'error');
+                return;
+            }
+
+            const senderId = document.getElementById('senderId').value.trim();
+            const receiverId = document.getElementById('receiverId').value.trim();
+            const content = document.getElementById('content').value.trim();
+
+            if (!senderId || !receiverId || !content) {
+                log('Please fill in Sender ID, Receiver ID, and Content', 'error');
+                return;
+            }
+
+            const payload = {
+                sender_id: senderId,
+                receiver_id: receiverId,
+                content: content
+            };
+
+            const message = {
+                type: 'chat_message',
+                sender_id: senderId,
+                payload: payload
+            };
+
+            const jsonMsg = JSON.stringify(message);
+            ws.send(jsonMsg);
+            log(`Sent: ${jsonMsg}`, 'sent');
+        }
+    </script>
+</body>
+</html>
