@@ -78,6 +78,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dashboard
+      args:
+        NEXT_PUBLIC_BACKEND_URL: https://noboringcoffee.com/api
     container_name: ai_support_dashboard
     environment:
       - NODE_ENV=production

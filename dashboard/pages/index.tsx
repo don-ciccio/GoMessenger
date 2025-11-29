@@ -58,7 +58,9 @@ export default function Home() {
     fetchConversations(userId);
 
     // WebSocket Connection
-    const ws = new WebSocket(`ws://localhost:8080/ws?token=${token}`);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+    const wsUrl = backendUrl.replace(/^http/, 'ws') + '/ws';
+    const ws = new WebSocket(`${wsUrl}?token=${token}`);
     
     ws.onopen = () => {
       console.log('Connected to WebSocket');
