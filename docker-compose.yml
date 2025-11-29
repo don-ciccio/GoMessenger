@@ -2,8 +2,6 @@ services:
   gateway:
     build: ./services/gateway
     container_name: gateway
-    ports:
-      - "8080:8080"
     depends_on:
       - auth_service
       - redis
@@ -13,6 +11,14 @@ services:
       - AUTH_SERVICE_ADDR=auth_service:50051
       - CHAT_SERVICE_URL=http://chat_service:8081
       - AUTH_SERVICE_HTTP_URL=http://auth_service:8082
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-gateway.rule=(Host(`noboringcoffee.com`) || Host(`www.noboringcoffee.com`)) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-gateway.entrypoints=web"
+      - "traefik.http.routers.api-gateway.priority=100"
+      - "traefik.http.routers.api-gateway.middlewares=api-stripprefix"
+      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.services.api-gateway.loadbalancer.server.port=8080"
     networks:
       - chatnet
 
@@ -48,10 +54,10 @@ services:
     command:
       - "--api.insecure=true"
       - "--providers.docker"
-      - "--entrypoints.web.address=:3000"
+      - "--entrypoints.web.address=:80"
       - "--log.level=DEBUG"
     ports:
-      - "3000:3000"
+      - "80:80"
       - "8090:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -65,13 +71,14 @@ services:
     container_name: ai_support_dashboard
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+      - NEXT_PUBLIC_BACKEND_URL=http://noboringcoffee.com/api
       - BACKEND_URL=http://gateway:8080
       - HOSTNAME=0.0.0.0
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.app-dashboard.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.app-dashboard.rule=(Host(`noboringcoffee.com`) || Host(`www.noboringcoffee.com`)) && PathPrefix(`/`)"
       - "traefik.http.routers.app-dashboard.entrypoints=web"
+      - "traefik.http.routers.app-dashboard.priority=1"
       - "traefik.http.services.app-dashboard.loadbalancer.server.port=3000"
     depends_on:
       - gateway
