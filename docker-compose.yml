@@ -54,12 +54,21 @@ services:
     command:
       - "--api.insecure=true"
       - "--providers.docker"
+      - "providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.email=danilo.dalessio@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--log.level=DEBUG"
     ports:
       - "80:80"
+      - "443:443"
       - "8090:8080"
     volumes:
+      - /letsencrypt:/letsencrypt
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - chatnet
@@ -77,7 +86,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.app-dashboard.rule=(Host(`noboringcoffee.com`) || Host(`www.noboringcoffee.com`)) && PathPrefix(`/`)"
-      - "traefik.http.routers.app-dashboard.entrypoints=web"
+      - "traefik.http.routers.app-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.app-dashboard.tls.certresolver=myresolver"
       - "traefik.http.routers.app-dashboard.priority=1"
       - "traefik.http.services.app-dashboard.loadbalancer.server.port=3000"
     depends_on:
@@ -121,6 +131,7 @@ services:
 volumes:
   mongo_chat_data:
   mongo_user_data:
+  letsencrypt:
 
 
 networks:
