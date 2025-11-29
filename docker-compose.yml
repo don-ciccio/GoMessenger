@@ -51,7 +51,7 @@ services:
       - chatnet
 
   reverse-proxy:
-    image: traefik:v3.1
+    image: traefik:v2.11
     command:
       - "--api.insecure=true"
       - "--providers.docker"
