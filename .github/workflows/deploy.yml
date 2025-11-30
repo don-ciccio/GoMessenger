@@ -34,7 +34,7 @@ jobs:
       - name: Build and push Gateway
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./services/gateway
           file: ./services/gateway/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-gateway:latest
@@ -42,7 +42,7 @@ jobs:
       - name: Build and push Auth Service
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./services/auth_service
           file: ./services/auth_service/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-auth-service:latest
@@ -50,7 +50,7 @@ jobs:
       - name: Build and push Chat Service
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./services/chat_service
           file: ./services/chat_service/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-chat-service:latest
