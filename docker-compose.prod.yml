@@ -1,0 +1,129 @@
+services:
+  gateway:
+    image: ghcr.io/don-ciccio/gomessenger-gateway:latest
+    container_name: gateway
+    depends_on:
+      - auth_service
+      - redis
+    environment:
+      - REDIS_URL=redis:6379
+      - REDIS_CHANNEL_CHAT=chat_channel
+      - AUTH_SERVICE_ADDR=auth_service:50051
+      - CHAT_SERVICE_URL=http://chat_service:8081
+      - AUTH_SERVICE_HTTP_URL=http://auth_service:8082
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-gateway.rule=Host(`noboringcoffee.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-gateway.entrypoints=websecure"
+      - "traefik.http.routers.api-gateway.tls.certresolver=myresolver"
+      - "traefik.http.routers.api-gateway.priority=100"
+      - "traefik.http.routers.api-gateway.middlewares=api-stripprefix"
+      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.services.api-gateway.loadbalancer.server.port=8080"
+    networks:
+      - chatnet
+
+  chat_service:
+    image: ghcr.io/don-ciccio/gomessenger-chat-service:latest
+    container_name: chat_service
+    depends_on:
+      - mongo_chat
+      - redis
+    environment:
+      - MONGO_URI=mongodb://mongo_chat:27017
+      - REDIS_URL=redis:6379
+      - REDIS_CHANNEL_CHAT=chat_channel
+    networks:
+      - chatnet
+
+  auth_service:
+    image: ghcr.io/don-ciccio/gomessenger-auth-service:latest
+    container_name: auth_service
+    depends_on:
+      - mongo_user
+    environment:
+      - MONGO_URI=mongodb://mongo_user:27017
+      - JWT_SECRET=supersecretkey
+    networks:
+      - chatnet
+
+  reverse-proxy:
+    image: traefik:v2.11
+    container_name: reverse-proxy
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.email=danilo.dalessio@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--log.level=DEBUG"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8090:8080"
+    volumes:
+      - /letsencrypt:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - chatnet
+
+  dashboard:
+    image: ghcr.io/don-ciccio/gomessenger-dashboard:latest
+    container_name: ai_support_dashboard
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_BACKEND_URL=https://noboringcoffee.com/api
+      - BACKEND_URL=http://gateway:8080
+      - HOSTNAME=0.0.0.0
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app-dashboard.rule=Host(`noboringcoffee.com`) && PathPrefix(`/`)"
+      - "traefik.http.routers.app-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.app-dashboard.tls.certresolver=myresolver"
+      - "traefik.http.routers.app-dashboard.priority=1"
+      - "traefik.http.services.app-dashboard.loadbalancer.server.port=3000"
+    depends_on:
+      - gateway
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chatnet
+
+  mongo_chat:
+    image: mongo:7
+    container_name: mongo_chat
+    volumes:
+      - mongo_chat_data:/data/db
+    networks:
+      - chatnet
+
+  mongo_user:
+    image: mongo:7
+    container_name: mongo_user
+    volumes:
+      - mongo_user_data:/data/db
+    networks:
+      - chatnet
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    networks:
+      - chatnet
+
+volumes:
+  mongo_chat_data:
+  mongo_user_data:
+  letsencrypt:
+
+
+networks:
+  chatnet:
