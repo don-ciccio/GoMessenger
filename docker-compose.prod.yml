@@ -13,7 +13,7 @@ services:
       - AUTH_SERVICE_HTTP_URL=http://auth_service:8082
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api-gateway.rule=Host(`noboringcoffee.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api-gateway.rule=(Host(`noboringcoffee.com`) || Host(`www.noboringcoffee.com`)) && PathPrefix(`/api`)"
       - "traefik.http.routers.api-gateway.entrypoints=websecure"
       - "traefik.http.routers.api-gateway.tls.certresolver=myresolver"
       - "traefik.http.routers.api-gateway.priority=100"
@@ -30,7 +30,7 @@ services:
       - mongo_chat
       - redis
     environment:
-      - MONGO_URI=mongodb://mongo-chat:27017
+      - MONGO_URL=mongodb://mongo-chat:27017
       - REDIS_URL=redis:6379
       - REDIS_CHANNEL_CHAT=chat_channel
     networks:
@@ -42,7 +42,7 @@ services:
     depends_on:
       - mongo_user
     environment:
-      - MONGO_URI=mongodb://mongo-user:27017
+      - MONGO_URL=mongodb://mongo-user:27017
       - JWT_SECRET=supersecretkey
     networks:
       - chatnet
@@ -82,7 +82,7 @@ services:
       - HOSTNAME=0.0.0.0
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.app-dashboard.rule=Host(`noboringcoffee.com`) && PathPrefix(`/`)"
+      - "traefik.http.routers.app-dashboard.rule=(Host(`noboringcoffee.com`) || Host(`www.noboringcoffee.com`)) && PathPrefix(`/`)"
       - "traefik.http.routers.app-dashboard.entrypoints=websecure"
       - "traefik.http.routers.app-dashboard.tls.certresolver=myresolver"
       - "traefik.http.routers.app-dashboard.priority=1"
