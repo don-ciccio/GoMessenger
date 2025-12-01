@@ -30,7 +30,7 @@ services:
       - mongo_chat
       - redis
     environment:
-      - MONGO_URI=mongodb://mongo_chat:27017
+      - MONGO_URI=mongodb://mongo-chat:27017
       - REDIS_URL=redis:6379
       - REDIS_CHANNEL_CHAT=chat_channel
     networks:
@@ -42,7 +42,7 @@ services:
     depends_on:
       - mongo_user
     environment:
-      - MONGO_URI=mongodb://mongo_user:27017
+      - MONGO_URI=mongodb://mongo-user:27017
       - JWT_SECRET=supersecretkey
     networks:
       - chatnet
@@ -99,7 +99,7 @@ services:
 
   mongo_chat:
     image: mongo:7
-    container_name: mongo_chat
+    container_name: mongo-chat
     volumes:
       - mongo_chat_data:/data/db
     networks:
@@ -107,7 +107,7 @@ services:
 
   mongo_user:
     image: mongo:7
-    container_name: mongo_user
+    container_name: mongo-user
     volumes:
       - mongo_user_data:/data/db
     networks:
