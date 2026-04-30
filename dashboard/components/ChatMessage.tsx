@@ -23,13 +23,15 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
           isMe 
             ? 'bg-[var(--accent-primary)]' 
-            : 'bg-[var(--bg-tertiary)] border border-[var(--border-primary)]'
+            : (message.senderId?.includes('.myshopify.com') ? 'bg-green-100 border border-green-300' : 'bg-[var(--bg-tertiary)] border border-[var(--border-primary)]')
         }`}>
           {isMe ? (
             <UserIcon className="w-5 h-5 text-white" />
           ) : (
-            <div className="w-5 h-5 flex items-center justify-center text-[var(--text-secondary)] font-bold text-xs">
-              {message.senderId ? message.senderId.slice(0, 2).toUpperCase() : 'Rx'}
+            <div className={`w-5 h-5 flex items-center justify-center font-bold text-xs ${message.senderId?.includes('.myshopify.com') ? 'text-green-800' : 'text-[var(--text-secondary)]'}`}>
+              {message.senderId?.includes('.myshopify.com') 
+                ? 'Shop' 
+                : (message.senderId ? message.senderId.slice(0, 2).toUpperCase() : 'Rx')}
             </div>
           )}
         </div>

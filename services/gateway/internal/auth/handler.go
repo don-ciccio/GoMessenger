@@ -48,13 +48,15 @@ func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&req)
 
 	token, err := h.service.Register(r.Context(), &req)
-	switch {
-	case err == ErrUserAlredyExists:
+	if err != nil {
+		// The auth service returns ErrUserAlredyExists only when password doesn't match.
+		// A matching password returns a token (idempotent register).
 		http.Error(w, `{"error":"User already exists"}`, http.StatusForbidden)
-	case err != nil:
-		http.Error(w, `{"error":"Internal server error"}`, http.StatusInternalServerError)
-	default:
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(AuthResponse{Token: token})
+		return
 	}
+
+	// Success: either newly created (201) or idempotent match (200).
+	// We use 200 for simplicity — the caller only cares about the token.
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(AuthResponse{Token: token})
 }

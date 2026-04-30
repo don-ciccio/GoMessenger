@@ -63,7 +63,7 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-dashboard:latest
           build-args: |
-            NEXT_PUBLIC_BACKEND_URL=https://noboringcoffee.com/api
+            NEXT_PUBLIC_BACKEND_URL=https://roasties.it/api
 
   deploy:
     needs: build-and-push
@@ -76,6 +76,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          passphrase: ${{ secrets.VPS_SSH_PASSPHRASE }}
           script: |
             # Navigate to project directory
             cd /home/danilo/GoMessenger

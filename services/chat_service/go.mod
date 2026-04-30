@@ -1,6 +1,6 @@
 module github.com/Miguel-Pezzini/GoMessenger/services/chat_service
 
-go 1.25.1
+go 1.25.0
 
 require (
 	github.com/redis/go-redis/v9 v9.16.0

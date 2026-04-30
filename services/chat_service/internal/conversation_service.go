@@ -16,7 +16,7 @@ func NewConversationService(repo ConversationRepository) *ConversationService {
 }
 
 // GetOrCreateConversation finds an existing conversation or creates a new one
-func (s *ConversationService) GetOrCreateConversation(ctx context.Context, participants []string) (*Conversation, error) {
+func (s *ConversationService) GetOrCreateConversation(ctx context.Context, participants []string, shopID string) (*Conversation, error) {
 	// Try to find existing conversation
 	conversation, err := s.repo.FindByParticipants(ctx, participants)
 	if err == nil {
@@ -25,7 +25,7 @@ func (s *ConversationService) GetOrCreateConversation(ctx context.Context, parti
 
 	// If not found, create new
 	if err == mongo.ErrNoDocuments {
-		return s.repo.Create(ctx, participants)
+		return s.repo.Create(ctx, participants, shopID)
 	}
 
 	return nil, err
@@ -35,8 +35,8 @@ func (s *ConversationService) GetConversation(ctx context.Context, id string) (*
 	return s.repo.FindByID(ctx, id)
 }
 
-func (s *ConversationService) ListUserConversations(ctx context.Context, userID string) ([]*Conversation, error) {
-	return s.repo.ListByUserID(ctx, userID)
+func (s *ConversationService) ListUserConversations(ctx context.Context, userID string, shopID string) ([]*Conversation, error) {
+	return s.repo.ListByUserID(ctx, userID, shopID)
 }
 
 func (s *ConversationService) UpdateLastMessage(ctx context.Context, conversationID string, message string) error {

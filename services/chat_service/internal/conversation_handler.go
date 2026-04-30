@@ -28,7 +28,7 @@ func (h *ConversationHandler) CreateOrGetConversation(w http.ResponseWriter, r *
 	}
 
 	ctx := r.Context()
-	conversation, err := h.conversationService.GetOrCreateConversation(ctx, req.Participants)
+	conversation, err := h.conversationService.GetOrCreateConversation(ctx, req.Participants, req.ShopID)
 	if err != nil {
 		http.Error(w, "Failed to create conversation", http.StatusInternalServerError)
 		return
@@ -38,7 +38,7 @@ func (h *ConversationHandler) CreateOrGetConversation(w http.ResponseWriter, r *
 	json.NewEncoder(w).Encode(conversation)
 }
 
-// ListConversations handles GET /conversations?user_id=xxx
+// ListConversations handles GET /conversations?user_id=xxx&shop_id=yyy
 func (h *ConversationHandler) ListConversations(w http.ResponseWriter, r *http.Request) {
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
@@ -46,8 +46,10 @@ func (h *ConversationHandler) ListConversations(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	shopID := r.URL.Query().Get("shop_id")
+
 	ctx := r.Context()
-	conversations, err := h.conversationService.ListUserConversations(ctx, userID)
+	conversations, err := h.conversationService.ListUserConversations(ctx, userID, shopID)
 	if err != nil {
 		http.Error(w, "Failed to list conversations", http.StatusInternalServerError)
 		return

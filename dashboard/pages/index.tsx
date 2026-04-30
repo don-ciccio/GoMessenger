@@ -305,7 +305,7 @@ export default function Home() {
             <Bars3Icon className="w-5 h-5" />
           </button>
           <div className="text-sm font-medium">
-            {targetUserId ? `Chatting with ${usernames[targetUserId] || targetUserId.slice(0, 8)}` : 'Select a user to chat'}
+            {targetUserId ? `Chatting with ${(usernames[targetUserId] || targetUserId.slice(0, 8)).replace('.myshopify.com', '')}` : 'Select a user to chat'}
           </div>
         </header>
 

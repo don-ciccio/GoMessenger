@@ -22,6 +22,7 @@ type ChatMessagePayload struct {
 	ConversationID string `json:"conversation_id,omitempty"` // New: use conversation
 	SenderID       string `json:"sender_id"`
 	ReceiverID     string `json:"receiver_id,omitempty"` // Deprecated: for auto-creating conversation
+	ShopID         string `json:"shop_id,omitempty"` // Shopify store domain (set by WS proxy)
 	Content        string `json:"content"`
 	Timestamp      int64  `json:"timestamp,omitempty"`
 }

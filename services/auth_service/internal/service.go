@@ -21,6 +21,11 @@ var ErrUserAlredyExists = errors.New("User Alredy Exists")
 
 func (s *Service) Register(req *authpb.RegisterRequest) (*authpb.RegisterResponse, error) {
 	if user, _ := s.repo.FindByUsername(context.Background(), req.Username); user != nil {
+		// Idempotent: if password matches, return a token (supports auto-provisioning)
+		if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)) == nil {
+			token, err := createToken(user.ID)
+			return &authpb.RegisterResponse{Token: token}, err
+		}
 		return &authpb.RegisterResponse{}, ErrUserAlredyExists
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)

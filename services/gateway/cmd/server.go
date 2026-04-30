@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/auth"
 	authpb "github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/pb/auth"
@@ -39,8 +40,26 @@ func NewServer(addr, authAddr string) *Server {
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
+	allowedOrigins := os.Getenv("CORS_ALLOWED_ORIGINS") // comma-separated: "https://admin.shopify.com,https://bitemein.app,https://noboringcoffee.com"
+	if allowedOrigins == "" {
+		allowedOrigins = "*" // dev fallback
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := r.Header.Get("Origin")
+
+		if allowedOrigins == "*" {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		} else {
+			// Check if the request origin is in the whitelist
+			for _, allowed := range splitOrigins(allowedOrigins) {
+				if origin == allowed {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+					break
+				}
+			}
+		}
+
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
@@ -51,6 +70,16 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func splitOrigins(s string) []string {
+	var origins []string
+	for _, o := range strings.Split(s, ",") {
+		if trimmed := strings.TrimSpace(o); trimmed != "" {
+			origins = append(origins, trimmed)
+		}
+	}
+	return origins
 }
 
 // proxyToConversationService forwards requests to chat_service

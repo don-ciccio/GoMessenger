@@ -60,6 +60,8 @@ export default function ConversationList({
             const isActive = conv.id === activeConversationId;
             const otherUserId = getOtherUser(conv.participants);
             const username = usernames[otherUserId] || `User ${otherUserId.slice(0, 8)}`;
+            const isShopify = username.includes('.myshopify.com');
+            const displayUsername = username.replace('.myshopify.com', '');
             const isOnline = onlineUsers.has(otherUserId);
             
             return (
@@ -78,9 +80,16 @@ export default function ConversationList({
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-2 mb-1">
-                      <span className="font-medium text-sm text-[var(--text-primary)] truncate">
-                        {username}
-                      </span>
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="font-medium text-sm text-[var(--text-primary)] truncate">
+                          {displayUsername}
+                        </span>
+                        {isShopify && (
+                          <span className="bg-green-100 text-green-800 text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">
+                            Merchant
+                          </span>
+                        )}
+                      </div>
                       {conv.last_message_at && (
                         <span className="text-xs text-[var(--text-tertiary)] flex-shrink-0">
                           {formatTime(conv.last_message_at)}

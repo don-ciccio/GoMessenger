@@ -12,10 +12,10 @@ import (
 )
 
 type ConversationRepository interface {
-	Create(ctx context.Context, participants []string) (*Conversation, error)
+	Create(ctx context.Context, participants []string, shopID string) (*Conversation, error)
 	FindByParticipants(ctx context.Context, participants []string) (*Conversation, error)
 	FindByID(ctx context.Context, id string) (*Conversation, error)
-	ListByUserID(ctx context.Context, userID string) ([]*Conversation, error)
+	ListByUserID(ctx context.Context, userID string, shopID string) ([]*Conversation, error)
 	UpdateLastMessage(ctx context.Context, conversationID string, message string) error
 }
 
@@ -27,12 +27,13 @@ func NewMongoConversationRepository(db *mongo.Database) *MongoConversationReposi
 	return &MongoConversationRepository{db: db}
 }
 
-func (r *MongoConversationRepository) Create(ctx context.Context, participants []string) (*Conversation, error) {
+func (r *MongoConversationRepository) Create(ctx context.Context, participants []string, shopID string) (*Conversation, error) {
 	// Sort participants to ensure consistent lookup
 	sort.Strings(participants)
 
 	conversation := &Conversation{
 		Participants:  participants,
+		ShopID:        shopID,
 		LastMessage:   "",
 		LastMessageAt: time.Now(),
 		CreatedAt:     time.Now(),
@@ -76,8 +77,11 @@ func (r *MongoConversationRepository) FindByID(ctx context.Context, id string) (
 	return &conversation, nil
 }
 
-func (r *MongoConversationRepository) ListByUserID(ctx context.Context, userID string) ([]*Conversation, error) {
+func (r *MongoConversationRepository) ListByUserID(ctx context.Context, userID string, shopID string) ([]*Conversation, error) {
 	filter := bson.M{"participants": userID}
+	if shopID != "" {
+		filter["shop_id"] = shopID
+	}
 	opts := options.Find().SetSort(bson.D{{Key: "last_message_at", Value: -1}})
 
 	cursor, err := r.db.Collection("conversations").Find(ctx, filter, opts)

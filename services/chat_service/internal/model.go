@@ -6,6 +6,7 @@ import "time"
 type Conversation struct {
 	ID            string    `bson:"_id,omitempty" json:"id"`
 	Participants  []string  `bson:"participants" json:"participants"` // User IDs
+	ShopID        string    `bson:"shop_id,omitempty" json:"shop_id,omitempty"` // Shopify store domain (for merchant conversations)
 	LastMessage   string    `bson:"last_message" json:"last_message"`
 	LastMessageAt time.Time `bson:"last_message_at" json:"last_message_at"`
 	CreatedAt     time.Time `bson:"created_at" json:"created_at"`
@@ -13,6 +14,7 @@ type Conversation struct {
 
 type ConversationRequest struct {
 	Participants []string `json:"participants"`
+	ShopID       string   `json:"shop_id,omitempty"` // Shopify store domain (optional)
 }
 
 type MessageRequest struct {

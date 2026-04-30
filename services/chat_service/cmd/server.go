@@ -118,7 +118,7 @@ func (s *Server) Start() error {
 				if req.ConversationID == "" && req.ReceiverID != "" {
 					participants := []string{req.SenderID, req.ReceiverID}
 					var err error
-					conversation, err = conversationService.GetOrCreateConversation(ctx, participants)
+					conversation, err = conversationService.GetOrCreateConversation(ctx, participants, "")
 					if err != nil {
 						log.Println("failed to create conversation:", err)
 						continue
