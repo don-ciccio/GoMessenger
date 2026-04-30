@@ -81,13 +81,6 @@ export default function Login() {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-
-        <div className="mt-4 text-center text-sm text-[var(--text-secondary)]">
-          Don't have an account?{' '}
-          <Link href="/register" className="text-[var(--accent-primary)] hover:underline">
-            Register
-          </Link>
-        </div>
       </div>
     </div>
   );

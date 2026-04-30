@@ -11,6 +11,7 @@ services:
       - AUTH_SERVICE_ADDR=auth_service:50051
       - CHAT_SERVICE_URL=http://chat_service:8081
       - AUTH_SERVICE_HTTP_URL=http://auth_service:8082
+      - REGISTRATION_SECRET=${REGISTRATION_SECRET:-}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api-gateway.rule=(Host(`roasties.it`) || Host(`www.roasties.it`)) && PathPrefix(`/api`)"

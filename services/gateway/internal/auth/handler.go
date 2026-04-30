@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	authpb "github.com/Miguel-Pezzini/GoMessenger/services/gateway/internal/pb/auth"
 )
@@ -44,19 +45,37 @@ func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var req authpb.RegisterRequest
-	_ = json.NewDecoder(r.Body).Decode(&req)
+
+	var reqData struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Secret   string `json:"secret"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
+		http.Error(w, `{"error":"Invalid request format"}`, http.StatusBadRequest)
+		return
+	}
+
+	// Security: Prevent random users from registering manually
+	// The Shopify app will pass this secret when provisioning merchants.
+	expectedSecret := os.Getenv("REGISTRATION_SECRET")
+	if expectedSecret != "" && reqData.Secret != expectedSecret {
+		http.Error(w, `{"error":"Registration is restricted"}`, http.StatusForbidden)
+		return
+	}
+
+	req := authpb.RegisterRequest{
+		Username: reqData.Username,
+		Password: reqData.Password,
+	}
 
 	token, err := h.service.Register(r.Context(), &req)
 	if err != nil {
-		// The auth service returns ErrUserAlredyExists only when password doesn't match.
-		// A matching password returns a token (idempotent register).
 		http.Error(w, `{"error":"User already exists"}`, http.StatusForbidden)
 		return
 	}
 
-	// Success: either newly created (201) or idempotent match (200).
-	// We use 200 for simplicity — the caller only cares about the token.
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(AuthResponse{Token: token})
 }
