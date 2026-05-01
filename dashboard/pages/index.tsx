@@ -128,9 +128,13 @@ export default function Home() {
     if (missingIds.length === 0) return;
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/batch`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ ids: missingIds })
       });
       if (response.ok) {
@@ -150,7 +154,12 @@ export default function Home() {
 
   const fetchConversations = async (userId: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/conversations?user_id=${userId}`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/conversations?user_id=${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         setConversations(data || []);
@@ -180,7 +189,12 @@ export default function Home() {
     
     // Load message history
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/conversations/${conversationId}/messages?limit=50`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/conversations/${conversationId}/messages?limit=50`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         const loadedMessages: Message[] = (data || []).map((msg: any) => ({

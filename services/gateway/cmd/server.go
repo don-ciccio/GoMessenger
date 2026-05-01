@@ -137,22 +137,22 @@ func (s *Server) Start() error {
 	mux.Handle("POST /auth/login", http.HandlerFunc(authHandler.LoginHandler))
 	mux.Handle("POST /auth/register", http.HandlerFunc(authHandler.RegisterHandler))
 
-	// Conversation endpoints (proxy to chat_service)
-	mux.HandleFunc("POST /conversations", proxyToConversationService)
-	mux.HandleFunc("GET /conversations", proxyToConversationService)
-	mux.HandleFunc("GET /conversations/{id}/messages", proxyToConversationService)
+	// Conversation endpoints (proxy to chat_service) - Protected by JWT
+	mux.Handle("POST /conversations", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
+	mux.Handle("GET /conversations", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
+	mux.Handle("GET /conversations/{id}/messages", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
 
-	// Proxy user search and batch lookup to Auth Service
+	// Proxy user search and batch lookup to Auth Service - Protected by JWT
 	authServiceHTTPURL := os.Getenv("AUTH_SERVICE_HTTP_URL")
 	if authServiceHTTPURL == "" {
 		authServiceHTTPURL = "http://localhost:8082"
 	}
-	mux.HandleFunc("GET /users/search", func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("GET /users/search", auth.JWTMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		proxyToService(w, r, authServiceHTTPURL)
-	})
-	mux.HandleFunc("POST /users/batch", func(w http.ResponseWriter, r *http.Request) {
+	})))
+	mux.Handle("POST /users/batch", auth.JWTMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		proxyToService(w, r, authServiceHTTPURL)
-	})
+	})))
 
 	return http.ListenAndServe(s.addr, corsMiddleware(mux))
 }

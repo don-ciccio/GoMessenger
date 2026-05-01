@@ -28,7 +28,10 @@ export default function UserSearch({ currentUserId, onStartConversation }: UserS
 
     setIsSearching(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/search?q=${encodeURIComponent(query)}`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/search?q=${encodeURIComponent(query)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (response.ok) {
         const data = await response.json();
         // Filter out current user
@@ -45,9 +48,13 @@ export default function UserSearch({ currentUserId, onStartConversation }: UserS
   const handleSelectUser = async (user: User) => {
     // Create or get conversation with this user
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/conversations`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           participants: [currentUserId, user.id]
         })
