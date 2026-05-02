@@ -35,6 +35,12 @@ services:
       - MONGO_URL=mongodb://mongo-chat:27017
       - REDIS_URL=redis:6379
       - REDIS_CHANNEL_CHAT=chat_channel
+      - AUTH_SERVICE_HTTP_URL=http://auth_service:8082
+      - APNS_KEY_ID=${APNS_KEY_ID}
+      - APNS_TEAM_ID=${APNS_TEAM_ID}
+      - APNS_KEY_BASE64=${APNS_KEY_BASE64}
+      - APNS_BUNDLE_ID=${APNS_BUNDLE_ID:-com.danilo.GoMessengeriOS}
+      - APNS_ENVIRONMENT=${APNS_ENVIRONMENT:-production}
     networks:
       - chatnet
 

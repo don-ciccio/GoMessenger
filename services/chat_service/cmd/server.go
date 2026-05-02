@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"log"
@@ -57,6 +58,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 func (s *Server) Start() error {
 	ctx := context.Background()
+	chat.InitAPNs()
 
 	// Initialize repositories and services
 	messageRepo := chat.NewMongoRepository(s.mongo)
@@ -156,6 +158,57 @@ func (s *Server) Start() error {
 				if err := s.rdb.Publish(ctx, channel, res).Err(); err != nil {
 					log.Println("failed to publish to gateway channel:", err)
 					continue
+				}
+				
+				// Send APNs Push Notification to all recipients except the sender
+				if conversation != nil {
+					go func(senderID string, text string, conversationID string, participants []string) {
+						var recipientIDs []string
+						for _, p := range participants {
+							if p != senderID {
+								recipientIDs = append(recipientIDs, p)
+							}
+						}
+						
+						if len(recipientIDs) == 0 {
+							return
+						}
+						
+						authServiceHTTPURL := os.Getenv("AUTH_SERVICE_HTTP_URL")
+						if authServiceHTTPURL == "" {
+							authServiceHTTPURL = "http://localhost:8082"
+						}
+						
+						reqBody, _ := json.Marshal(map[string]interface{}{"ids": recipientIDs})
+						httpReq, _ := http.NewRequest("POST", authServiceHTTPURL+"/users/batch", bytes.NewBuffer(reqBody))
+						httpReq.Header.Set("Content-Type", "application/json")
+						
+						client := &http.Client{Timeout: 5 * time.Second}
+						resp, err := client.Do(httpReq)
+						if err != nil {
+							log.Println("failed to fetch users for push:", err)
+							return
+						}
+						defer resp.Body.Close()
+						
+						if resp.StatusCode == 200 {
+							var users []struct {
+								DeviceTokens []string `json:"device_tokens"`
+							}
+							if err := json.NewDecoder(resp.Body).Decode(&users); err == nil {
+								var allTokens []string
+								for _, u := range users {
+									allTokens = append(allTokens, u.DeviceTokens...)
+								}
+								if len(allTokens) > 0 {
+									metadata := map[string]interface{}{
+										"conversation_id": conversationID,
+									}
+									chat.SendPushNotification(allTokens, "New Message", text, metadata)
+								}
+							}
+						}
+					}(req.SenderID, req.Content, req.ConversationID, conversation.Participants)
 				}
 
 				if err := s.rdb.XDel(ctx, streamName, msg.ID).Err(); err != nil {

@@ -70,3 +70,6 @@ coverage/
 tmp/
 temp/
 *.tmp
+
+# Apple Push Notification keys (NEVER commit these)
+*.p8

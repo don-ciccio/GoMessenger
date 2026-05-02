@@ -36,9 +36,10 @@ func (r *MongoRepository) Create(ctx context.Context, registerUserRequest *authp
 	}
 
 	user := &User{
-		ID:       userMongo.ID.Hex(),
-		Username: userMongo.Username,
-		Password: userMongo.Password,
+		ID:           userMongo.ID.Hex(),
+		Username:     userMongo.Username,
+		Password:     userMongo.Password,
+		DeviceTokens: userMongo.DeviceTokens,
 	}
 
 	return user, nil
@@ -52,9 +53,10 @@ func (r *MongoRepository) FindByUsername(ctx context.Context, username string) (
 	}
 
 	user := &User{
-		ID:       userMongo.ID.Hex(),
-		Username: userMongo.Username,
-		Password: userMongo.Password,
+		ID:           userMongo.ID.Hex(),
+		Username:     userMongo.Username,
+		Password:     userMongo.Password,
+		DeviceTokens: userMongo.DeviceTokens,
 	}
 
 	return user, nil
@@ -81,9 +83,10 @@ func (r *MongoRepository) SearchByUsername(ctx context.Context, query string, li
 	users := make([]*User, len(usersMongo))
 	for i, um := range usersMongo {
 		users[i] = &User{
-			ID:       um.ID.Hex(),
-			Username: um.Username,
-			Password: um.Password,
+			ID:           um.ID.Hex(),
+			Username:     um.Username,
+			Password:     um.Password,
+			DeviceTokens: um.DeviceTokens,
 		}
 	}
 
@@ -117,11 +120,38 @@ func (r *MongoRepository) GetUsersByIDs(ctx context.Context, ids []string) ([]*U
 	users := make([]*User, len(usersMongo))
 	for i, um := range usersMongo {
 		users[i] = &User{
-			ID:       um.ID.Hex(),
-			Username: um.Username,
-			Password: um.Password,
+			ID:           um.ID.Hex(),
+			Username:     um.Username,
+			Password:     um.Password,
+			DeviceTokens: um.DeviceTokens,
 		}
 	}
 
 	return users, nil
+}
+
+func (r *MongoRepository) AddDeviceToken(ctx context.Context, userID, token string) error {
+	oid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": oid}
+	update := bson.M{"$addToSet": bson.M{"device_tokens": token}}
+
+	_, err = r.collection.UpdateOne(ctx, filter, update)
+	return err
+}
+
+func (r *MongoRepository) RemoveDeviceToken(ctx context.Context, userID, token string) error {
+	oid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": oid}
+	update := bson.M{"$pull": bson.M{"device_tokens": token}}
+
+	_, err = r.collection.UpdateOne(ctx, filter, update)
+	return err
 }

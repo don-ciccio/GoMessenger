@@ -16,8 +16,9 @@ func NewSearchHandler(repo Repository) *SearchHandler {
 }
 
 type UserResponse struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
+	ID           string   `json:"id"`
+	Username     string   `json:"username"`
+	DeviceTokens []string `json:"device_tokens,omitempty"`
 }
 
 func (h *SearchHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
@@ -48,6 +49,7 @@ func (h *SearchHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		response[i] = UserResponse{
 			ID:       user.ID,
 			Username: user.Username,
+			// NOTE: DeviceTokens intentionally omitted from search results (public-facing)
 		}
 	}
 
@@ -81,11 +83,63 @@ func (h *SearchHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	response := make([]UserResponse, len(users))
 	for i, user := range users {
 		response[i] = UserResponse{
-			ID:       user.ID,
-			Username: user.Username,
+			ID:           user.ID,
+			Username:     user.Username,
+			DeviceTokens: user.DeviceTokens,
 		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+type DeviceTokenRequest struct {
+	Token    string `json:"token"`
+	Platform string `json:"platform"`
+}
+
+func (h *SearchHandler) AddDeviceToken(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+		return
+	}
+
+	var req DeviceTokenRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Token == "" {
+		http.Error(w, `{"error":"Invalid request or missing token"}`, http.StatusBadRequest)
+		return
+	}
+
+	ctx := context.Background()
+	if err := h.repo.AddDeviceToken(ctx, userID, req.Token); err != nil {
+		http.Error(w, `{"error":"Failed to save token"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status":"success"}`))
+}
+
+func (h *SearchHandler) RemoveDeviceToken(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+		return
+	}
+
+	var req DeviceTokenRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Token == "" {
+		http.Error(w, `{"error":"Invalid request or missing token"}`, http.StatusBadRequest)
+		return
+	}
+
+	ctx := context.Background()
+	if err := h.repo.RemoveDeviceToken(ctx, userID, req.Token); err != nil {
+		http.Error(w, `{"error":"Failed to remove token"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status":"success"}`))
 }

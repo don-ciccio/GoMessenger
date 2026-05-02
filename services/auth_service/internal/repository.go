@@ -11,4 +11,6 @@ type Repository interface {
 	FindByUsername(ctx context.Context, username string) (*User, error)
 	SearchByUsername(ctx context.Context, query string, limit int) ([]*User, error)
 	GetUsersByIDs(ctx context.Context, ids []string) ([]*User, error)
+	AddDeviceToken(ctx context.Context, userID, token string) error
+	RemoveDeviceToken(ctx context.Context, userID, token string) error
 }

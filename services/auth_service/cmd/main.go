@@ -41,6 +41,8 @@ func main() {
 		searchHandler := auth.NewSearchHandler(srv.repo)
 		mux.HandleFunc("GET /users/search", searchHandler.SearchUsers)
 		mux.HandleFunc("POST /users/batch", searchHandler.GetUsers)
+		mux.HandleFunc("POST /users/device-token", searchHandler.AddDeviceToken)
+		mux.HandleFunc("DELETE /users/device-token", searchHandler.RemoveDeviceToken)
 
 		log.Println("AuthService HTTP API running on port 8082")
 		if err := http.ListenAndServe(":8082", corsMiddleware(mux)); err != nil {

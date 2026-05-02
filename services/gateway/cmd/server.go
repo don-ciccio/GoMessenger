@@ -105,6 +105,11 @@ func proxyToConversationService(w http.ResponseWriter, r *http.Request) {
 	// Copy headers
 	proxyReq.Header = r.Header.Clone()
 
+	// Inject authenticated User ID
+	if userID, ok := r.Context().Value(auth.UserIDKey).(string); ok {
+		proxyReq.Header.Set("X-User-Id", userID)
+	}
+
 	// Execute request
 	client := &http.Client{}
 	resp, err := client.Do(proxyReq)
@@ -130,7 +135,6 @@ func (s *Server) Start() error {
 	wsHandler := websocket.NewWsHandler(websocket.NewService(websocket.NewRedisRepository(s.rdb)))
 
 	wsHandler.StartPubSubListener()
-	// mux.Handle("GET /ws", auth.JWTMiddleware(http.HandlerFunc(wsHandler.HandleConnection)))
 	mux.Handle("GET /ws", auth.JWTMiddleware(http.HandlerFunc(wsHandler.HandleConnection)))
 
 	authHandler := auth.NewHandler(auth.NewService(s.auth_service))
@@ -153,6 +157,12 @@ func (s *Server) Start() error {
 	mux.Handle("POST /users/batch", auth.JWTMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		proxyToService(w, r, authServiceHTTPURL)
 	})))
+	mux.Handle("POST /users/device-token", auth.JWTMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		proxyToService(w, r, authServiceHTTPURL)
+	})))
+	mux.Handle("DELETE /users/device-token", auth.JWTMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		proxyToService(w, r, authServiceHTTPURL)
+	})))
 
 	return http.ListenAndServe(s.addr, corsMiddleware(mux))
 }
@@ -171,6 +181,11 @@ func proxyToService(w http.ResponseWriter, r *http.Request, baseURL string) {
 	}
 
 	proxyReq.Header = r.Header.Clone()
+
+	// Inject authenticated User ID
+	if userID, ok := r.Context().Value(auth.UserIDKey).(string); ok {
+		proxyReq.Header.Set("X-User-Id", userID)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(proxyReq)
