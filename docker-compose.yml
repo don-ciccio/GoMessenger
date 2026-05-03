@@ -8,6 +8,7 @@ services:
     environment:
       - REDIS_URL=redis:6379
       - REDIS_CHANNEL_CHAT=chat_channel
+      - REDIS_STREAM_CHAT=chat_stream
       - AUTH_SERVICE_ADDR=auth_service:50051
       - CHAT_SERVICE_URL=http://chat_service:8081
       - AUTH_SERVICE_HTTP_URL=http://auth_service:8082
@@ -35,6 +36,7 @@ services:
       - REDIS_URL=redis:6379
       - MONGO_URL=mongodb://mongo-chat:27017/chatdb
       - REDIS_CHANNEL_CHAT=chat_channel
+      - REDIS_STREAM_CHAT=chat_stream
     networks:
       - chatnet
 
