@@ -41,6 +41,11 @@ export default function Home() {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const activeConversationIdRef = useRef(activeConversationId);
+
+  useEffect(() => {
+    activeConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
 
   useEffect(() => {
     // Auth Check
@@ -95,7 +100,11 @@ export default function Home() {
                 timestamp: new Date(data.timestamp ? data.timestamp * 1000 : Date.now()),
                 senderId: data.sender_id
             };
-            setMessages((prev) => [...prev, newMessage]);
+            
+            // Only append to the view if it belongs to the active conversation
+            if (!data.conversation_id || data.conversation_id === activeConversationIdRef.current) {
+                setMessages((prev) => [...prev, newMessage]);
+            }
             
             // Refresh conversations to update last message
             if (data.conversation_id) {

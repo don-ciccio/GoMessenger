@@ -84,6 +84,11 @@ func (h *ConversationHandler) GetConversationMessages(w http.ResponseWriter, r *
 		return
 	}
 
+	// Reverse messages to return them in chronological order
+	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+		messages[i], messages[j] = messages[j], messages[i]
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(messages)
 }

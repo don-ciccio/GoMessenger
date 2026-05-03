@@ -41,7 +41,7 @@ func (r *MongoRepository) FindByConversationID(ctx context.Context, conversation
 	opts := options.Find().
 		SetLimit(int64(limit)).
 		SetSkip(int64(offset)).
-		SetSort(map[string]int{"timestamp": 1})
+		SetSort(map[string]int{"timestamp": -1})
 
 	cursor, err := r.collection.Find(ctx, filter, opts)
 	if err != nil {
