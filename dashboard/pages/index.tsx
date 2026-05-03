@@ -151,7 +151,7 @@ export default function Home() {
         setUsernames(prev => {
           const next = { ...prev };
           users.forEach((u: any) => {
-            next[u.id] = u.username;
+            next[u.id] = u.display_name || u.username;
           });
           return next;
         });
@@ -220,9 +220,9 @@ export default function Home() {
     }
   };
 
-  const handleStartConversation = (userId: string, username: string) => {
-    // Store username
-    setUsernames(prev => ({ ...prev, [userId]: username }));
+  const handleStartConversation = (userId: string, displayName: string) => {
+    // Store display name
+    setUsernames(prev => ({ ...prev, [userId]: displayName }));
     
     // Refresh conversations to get the new one
     fetchConversations(myUserId);
@@ -328,7 +328,7 @@ export default function Home() {
             <Bars3Icon className="w-5 h-5" />
           </button>
           <div className="text-sm font-medium">
-            {targetUserId ? `Chatting with ${(usernames[targetUserId] || targetUserId.slice(0, 8)).replace('.myshopify.com', '')}` : 'Select a user to chat'}
+            {targetUserId ? `Chatting with ${usernames[targetUserId] || targetUserId.slice(0, 8)}` : 'Select a user to chat'}
           </div>
         </header>
 

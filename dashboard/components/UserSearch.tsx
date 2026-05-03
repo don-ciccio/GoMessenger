@@ -5,6 +5,7 @@ import { UserCircleIcon } from '@heroicons/react/24/solid';
 interface User {
   id: string;
   username: string;
+  display_name?: string;
 }
 
 interface UserSearchProps {
@@ -62,7 +63,7 @@ export default function UserSearch({ currentUserId, onStartConversation }: UserS
       
       if (response.ok) {
         const conversation = await response.json();
-        onStartConversation(user.id, user.username);
+        onStartConversation(user.id, user.display_name || user.username);
         setIsOpen(false);
         setSearchQuery('');
         setSearchResults([]);
@@ -141,11 +142,18 @@ export default function UserSearch({ currentUserId, onStartConversation }: UserS
                       <UserCircleIcon className="w-10 h-10 text-[var(--text-tertiary)] flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-[var(--text-primary)] truncate">
-                          {user.username}
+                          {user.display_name || user.username}
                         </div>
-                        <div className="text-xs text-[var(--text-tertiary)] truncate">
-                          ID: {user.id.slice(0, 12)}
-                        </div>
+                        {user.display_name && (
+                          <div className="text-xs text-[var(--text-tertiary)] truncate">
+                            {user.username}
+                          </div>
+                        )}
+                        {!user.display_name && (
+                          <div className="text-xs text-[var(--text-tertiary)] truncate">
+                            ID: {user.id.slice(0, 12)}
+                          </div>
+                        )}
                       </div>
                       <UserPlusIcon className="w-5 h-5 text-[var(--text-secondary)] flex-shrink-0" />
                     </button>

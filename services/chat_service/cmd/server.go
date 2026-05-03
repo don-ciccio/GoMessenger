@@ -159,7 +159,7 @@ func (s *Server) Start() error {
 					log.Println("failed to publish to gateway channel:", err)
 					continue
 				}
-				
+
 				// Send APNs Push Notification to all recipients except the sender
 				if conversation != nil {
 					go func(senderID string, text string, conversationID string, participants []string) {
@@ -169,20 +169,22 @@ func (s *Server) Start() error {
 								recipientIDs = append(recipientIDs, p)
 							}
 						}
-						
+
 						if len(recipientIDs) == 0 {
 							return
 						}
-						
+
 						authServiceHTTPURL := os.Getenv("AUTH_SERVICE_HTTP_URL")
 						if authServiceHTTPURL == "" {
 							authServiceHTTPURL = "http://localhost:8082"
 						}
-						
-						reqBody, _ := json.Marshal(map[string]interface{}{"ids": recipientIDs})
+
+						// Fetch all participants (including sender) to get display names and device tokens
+						allIDs := append(recipientIDs, senderID)
+						reqBody, _ := json.Marshal(map[string]interface{}{"ids": allIDs})
 						httpReq, _ := http.NewRequest("POST", authServiceHTTPURL+"/users/batch/internal", bytes.NewBuffer(reqBody))
 						httpReq.Header.Set("Content-Type", "application/json")
-						
+
 						client := &http.Client{Timeout: 5 * time.Second}
 						resp, err := client.Do(httpReq)
 						if err != nil {
@@ -190,21 +192,35 @@ func (s *Server) Start() error {
 							return
 						}
 						defer resp.Body.Close()
-						
+
 						if resp.StatusCode == 200 {
 							var users []struct {
+								ID           string   `json:"id"`
+								Username     string   `json:"username"`
+								DisplayName  string   `json:"display_name"`
 								DeviceTokens []string `json:"device_tokens"`
 							}
 							if err := json.NewDecoder(resp.Body).Decode(&users); err == nil {
+								// Build recipient token list and find sender's display name
 								var allTokens []string
+								senderName := "New Message"
 								for _, u := range users {
-									allTokens = append(allTokens, u.DeviceTokens...)
+									if u.ID == senderID {
+										// Use display name if available, otherwise fall back to username
+										if u.DisplayName != "" {
+											senderName = u.DisplayName
+										} else {
+											senderName = u.Username
+										}
+									} else {
+										allTokens = append(allTokens, u.DeviceTokens...)
+									}
 								}
 								if len(allTokens) > 0 {
 									metadata := map[string]interface{}{
 										"conversation_id": conversationID,
 									}
-									chat.SendPushNotification(allTokens, "New Message", text, metadata)
+									chat.SendPushNotification(allTokens, senderName, text, metadata)
 								}
 							}
 						}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type SearchHandler struct {
@@ -16,8 +17,9 @@ func NewSearchHandler(repo Repository) *SearchHandler {
 }
 
 type UserResponse struct {
-	ID           string   `json:"id"`
-	Username     string   `json:"username"`
+	ID          string `json:"id"`
+	Username    string `json:"username"`
+	DisplayName string `json:"display_name,omitempty"`
 }
 
 func (h *SearchHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
@@ -49,8 +51,9 @@ func (h *SearchHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 	response := make([]UserResponse, len(users))
 	for i, user := range users {
 		response[i] = UserResponse{
-			ID:       user.ID,
-			Username: user.Username,
+			ID:          user.ID,
+			Username:    user.Username,
+			DisplayName: user.DisplayName,
 			// NOTE: DeviceTokens intentionally omitted from search results (public-facing)
 		}
 	}
@@ -85,8 +88,9 @@ func (h *SearchHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	response := make([]UserResponse, len(users))
 	for i, user := range users {
 		response[i] = UserResponse{
-			ID:           user.ID,
-			Username:     user.Username,
+			ID:          user.ID,
+			Username:    user.Username,
+			DisplayName: user.DisplayName,
 		}
 	}
 
@@ -98,6 +102,7 @@ func (h *SearchHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 type internalUserResponse struct {
 	ID           string   `json:"id"`
 	Username     string   `json:"username"`
+	DisplayName  string   `json:"display_name,omitempty"`
 	DeviceTokens []string `json:"device_tokens,omitempty"`
 }
 
@@ -127,6 +132,7 @@ func (h *SearchHandler) GetUsersInternal(w http.ResponseWriter, r *http.Request)
 		response[i] = internalUserResponse{
 			ID:           user.ID,
 			Username:     user.Username,
+			DisplayName:  user.DisplayName,
 			DeviceTokens: user.DeviceTokens,
 		}
 	}
@@ -184,4 +190,37 @@ func (h *SearchHandler) RemoveDeviceToken(w http.ResponseWriter, r *http.Request
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status":"success"}`))
+}
+
+type UpdateDisplayNameRequest struct {
+	DisplayName string `json:"display_name"`
+}
+
+func (h *SearchHandler) UpdateDisplayName(w http.ResponseWriter, r *http.Request) {
+	// Parse user_id from headers (set by gateway after JWT auth)
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		http.Error(w, `{"error":"Unauthorized"}`, http.StatusUnauthorized)
+		return
+	}
+
+	var req UpdateDisplayNameRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, `{"error":"Invalid request body"}`, http.StatusBadRequest)
+		return
+	}
+
+	// Sanitize: trim whitespace and enforce max length
+	displayName := strings.TrimSpace(req.DisplayName)
+	if len(displayName) > 100 {
+		displayName = displayName[:100]
+	}
+
+	ctx := context.Background()
+	if err := h.repo.UpdateDisplayName(ctx, userID, displayName); err != nil {
+		http.Error(w, `{"error":"Failed to update display name"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

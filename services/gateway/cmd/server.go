@@ -163,6 +163,9 @@ func (s *Server) Start() error {
 	mux.Handle("DELETE /users/device-token", auth.JWTMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		proxyToService(w, r, authServiceHTTPURL)
 	})))
+	mux.Handle("PUT /users/display-name", auth.JWTMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		proxyToService(w, r, authServiceHTTPURL)
+	})))
 
 	return http.ListenAndServe(s.addr, corsMiddleware(mux))
 }

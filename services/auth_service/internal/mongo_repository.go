@@ -40,6 +40,7 @@ func (r *MongoRepository) Create(ctx context.Context, registerUserRequest *authp
 		ID:           userMongo.ID.Hex(),
 		Username:     userMongo.Username,
 		Password:     userMongo.Password,
+		DisplayName:  userMongo.DisplayName,
 		DeviceTokens: userMongo.DeviceTokens,
 	}
 
@@ -57,6 +58,7 @@ func (r *MongoRepository) FindByUsername(ctx context.Context, username string) (
 		ID:           userMongo.ID.Hex(),
 		Username:     userMongo.Username,
 		Password:     userMongo.Password,
+		DisplayName:  userMongo.DisplayName,
 		DeviceTokens: userMongo.DeviceTokens,
 	}
 
@@ -88,6 +90,7 @@ func (r *MongoRepository) SearchByUsername(ctx context.Context, query string, li
 			ID:           um.ID.Hex(),
 			Username:     um.Username,
 			Password:     um.Password,
+			DisplayName:  um.DisplayName,
 			DeviceTokens: um.DeviceTokens,
 		}
 	}
@@ -125,6 +128,7 @@ func (r *MongoRepository) GetUsersByIDs(ctx context.Context, ids []string) ([]*U
 			ID:           um.ID.Hex(),
 			Username:     um.Username,
 			Password:     um.Password,
+			DisplayName:  um.DisplayName,
 			DeviceTokens: um.DeviceTokens,
 		}
 	}
@@ -153,6 +157,19 @@ func (r *MongoRepository) RemoveDeviceToken(ctx context.Context, userID, token s
 
 	filter := bson.M{"_id": oid}
 	update := bson.M{"$pull": bson.M{"device_tokens": token}}
+
+	_, err = r.collection.UpdateOne(ctx, filter, update)
+	return err
+}
+
+func (r *MongoRepository) UpdateDisplayName(ctx context.Context, userID, displayName string) error {
+	oid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": oid}
+	update := bson.M{"$set": bson.M{"display_name": displayName}}
 
 	_, err = r.collection.UpdateOne(ctx, filter, update)
 	return err

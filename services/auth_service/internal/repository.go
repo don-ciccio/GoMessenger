@@ -13,4 +13,5 @@ type Repository interface {
 	GetUsersByIDs(ctx context.Context, ids []string) ([]*User, error)
 	AddDeviceToken(ctx context.Context, userID, token string) error
 	RemoveDeviceToken(ctx context.Context, userID, token string) error
+	UpdateDisplayName(ctx context.Context, userID, displayName string) error
 }

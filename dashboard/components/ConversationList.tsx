@@ -59,9 +59,8 @@ export default function ConversationList({
           {conversations.map((conv) => {
             const isActive = conv.id === activeConversationId;
             const otherUserId = getOtherUser(conv.participants);
-            const username = usernames[otherUserId] || `User ${otherUserId.slice(0, 8)}`;
-            const isShopify = username.includes('.myshopify.com');
-            const displayUsername = username.replace('.myshopify.com', '');
+            const displayName = usernames[otherUserId] || `User ${otherUserId.slice(0, 8)}`;
+            const isMerchant = otherUserId !== currentUserId; // All non-dev participants are merchants
             const isOnline = onlineUsers.has(otherUserId);
             
             return (
@@ -82,9 +81,9 @@ export default function ConversationList({
                     <div className="flex items-baseline justify-between gap-2 mb-1">
                       <div className="flex items-center gap-1.5 truncate">
                         <span className="font-medium text-sm text-[var(--text-primary)] truncate">
-                          {displayUsername}
+                          {displayName}
                         </span>
-                        {isShopify && (
+                        {isMerchant && (
                           <span className="bg-green-100 text-green-800 text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0">
                             Merchant
                           </span>
