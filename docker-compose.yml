@@ -44,7 +44,7 @@ services:
     build: ./services/auth_service
     container_name: auth_service
     ports:
-      - "50051:50051"
+      - "127.0.0.1:50051:50051"
     depends_on:
       - redis
       - mongo-user
@@ -111,7 +111,7 @@ services:
     image: redis:7-alpine
     container_name: redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     networks:
       - chatnet
 
@@ -119,7 +119,7 @@ services:
     image: mongo:7
     container_name: mongo_chat
     ports:
-      - "27018:27017"
+      - "127.0.0.1:27018:27017"
     volumes:
       - mongo_chat_data:/data/db
     networks:
@@ -129,7 +129,7 @@ services:
     image: mongo:7
     container_name: mongo_user
     ports:
-      - "27019:27017"
+      - "127.0.0.1:27019:27017"
     volumes:
       - mongo_user_data:/data/db
     networks:

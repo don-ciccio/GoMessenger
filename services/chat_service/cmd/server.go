@@ -180,7 +180,7 @@ func (s *Server) Start() error {
 						}
 						
 						reqBody, _ := json.Marshal(map[string]interface{}{"ids": recipientIDs})
-						httpReq, _ := http.NewRequest("POST", authServiceHTTPURL+"/users/batch", bytes.NewBuffer(reqBody))
+						httpReq, _ := http.NewRequest("POST", authServiceHTTPURL+"/users/batch/internal", bytes.NewBuffer(reqBody))
 						httpReq.Header.Set("Content-Type", "application/json")
 						
 						client := &http.Client{Timeout: 5 * time.Second}

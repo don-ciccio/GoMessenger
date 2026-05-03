@@ -18,7 +18,6 @@ func NewSearchHandler(repo Repository) *SearchHandler {
 type UserResponse struct {
 	ID           string   `json:"id"`
 	Username     string   `json:"username"`
-	DeviceTokens []string `json:"device_tokens,omitempty"`
 }
 
 func (h *SearchHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
@@ -34,6 +33,9 @@ func (h *SearchHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
 		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
 			limit = l
 		}
+	}
+	if limit > 50 {
+		limit = 50
 	}
 
 	ctx := context.Background()
@@ -83,6 +85,46 @@ func (h *SearchHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	response := make([]UserResponse, len(users))
 	for i, user := range users {
 		response[i] = UserResponse{
+			ID:           user.ID,
+			Username:     user.Username,
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+// internalUserResponse includes device tokens — only for service-to-service calls.
+type internalUserResponse struct {
+	ID           string   `json:"id"`
+	Username     string   `json:"username"`
+	DeviceTokens []string `json:"device_tokens,omitempty"`
+}
+
+// GetUsersInternal is the service-to-service variant of GetUsers.
+// It returns device tokens and is only exposed on the internal HTTP port (not via the gateway).
+func (h *SearchHandler) GetUsersInternal(w http.ResponseWriter, r *http.Request) {
+	var req GetUsersRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, `{"error":"Invalid request body"}`, http.StatusBadRequest)
+		return
+	}
+
+	if len(req.IDs) == 0 {
+		http.Error(w, `{"error":"ids array is required"}`, http.StatusBadRequest)
+		return
+	}
+
+	ctx := context.Background()
+	users, err := h.repo.GetUsersByIDs(ctx, req.IDs)
+	if err != nil {
+		http.Error(w, `{"error":"Failed to get users"}`, http.StatusInternalServerError)
+		return
+	}
+
+	response := make([]internalUserResponse, len(users))
+	for i, user := range users {
+		response[i] = internalUserResponse{
 			ID:           user.ID,
 			Username:     user.Username,
 			DeviceTokens: user.DeviceTokens,

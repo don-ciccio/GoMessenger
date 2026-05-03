@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"sync"
@@ -19,10 +20,44 @@ type WsHandler struct {
 	clientsM sync.RWMutex
 }
 
+// Maximum inbound WebSocket message size (32 KB). Prevents memory exhaustion from oversized frames.
+const maxMessageSize = 32 * 1024
+
+var allowedOrigins = func() []string {
+	env := os.Getenv("CORS_ALLOWED_ORIGINS")
+	if env == "" {
+		return nil // dev: allow all
+	}
+	var origins []string
+	for _, o := range strings.Split(env, ",") {
+		if trimmed := strings.TrimSpace(o); trimmed != "" {
+			origins = append(origins, trimmed)
+		}
+	}
+	return origins
+}()
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-	CheckOrigin:     func(r *http.Request) bool { return true },
+	CheckOrigin: func(r *http.Request) bool {
+		if len(allowedOrigins) == 0 {
+			return true // dev fallback
+		}
+		origin := r.Header.Get("Origin")
+		// Non-browser clients (iOS app, server-to-server proxy) don't send Origin.
+		// Allow them — the JWT token provides authentication.
+		if origin == "" {
+			return true
+		}
+		// Browser clients MUST match the whitelist (prevents CSWSH attacks).
+		for _, allowed := range allowedOrigins {
+			if origin == allowed {
+				return true
+			}
+		}
+		return false
+	},
 }
 
 func NewWsHandler(service *Service) *WsHandler {
@@ -38,6 +73,9 @@ func (h *WsHandler) HandleConnection(w http.ResponseWriter, r *http.Request) {
 		log.Println("Erro ao fazer upgrade:", err)
 		return
 	}
+
+	// Cap inbound message size to prevent memory exhaustion (DoS)
+	conn.SetReadLimit(maxMessageSize)
 	userID := r.Context().Value(auth.UserIDKey).(string)
 	if userID == "" {
 		conn.WriteMessage(websocket.TextMessage, []byte("user query param required"))
@@ -104,6 +142,7 @@ func (h *WsHandler) HandleConnection(w http.ResponseWriter, r *http.Request) {
 				var payload ChatMessagePayload
 				json.Unmarshal(gatewayMessage.Payload, &payload)
 				payload.Timestamp = time.Now().Unix()
+				payload.SenderID = userID // Enforce authenticated user ID
 				h.service.PersistMessage(payload)
 			}
 		}

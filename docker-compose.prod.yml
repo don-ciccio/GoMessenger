@@ -13,7 +13,8 @@ services:
       - CHAT_SERVICE_URL=http://chat_service:8081
       - AUTH_SERVICE_HTTP_URL=http://auth_service:8082
       - REGISTRATION_SECRET=${REGISTRATION_SECRET:-}
-      - JWT_SECRET=supersecretkey
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-https://roasties.it,https://www.roasties.it}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api-gateway.rule=(Host(`roasties.it`) || Host(`www.roasties.it`)) && PathPrefix(`/api`)"
@@ -53,7 +54,7 @@ services:
       - mongo_user
     environment:
       - MONGO_URL=mongodb://mongo-user:27017
-      - JWT_SECRET=supersecretkey
+      - JWT_SECRET=${JWT_SECRET}
     networks:
       - chatnet
 

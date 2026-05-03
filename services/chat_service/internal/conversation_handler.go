@@ -46,6 +46,13 @@ func (h *ConversationHandler) ListConversations(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	// Authorization: ensure the caller is requesting their own conversations
+	authenticatedUserID := r.Header.Get("X-User-Id")
+	if authenticatedUserID != "" && authenticatedUserID != userID {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
 	shopID := r.URL.Query().Get("shop_id")
 
 	ctx := r.Context()
@@ -65,6 +72,15 @@ func (h *ConversationHandler) GetConversationMessages(w http.ResponseWriter, r *
 	if conversationID == "" {
 		http.Error(w, "conversation_id is required", http.StatusBadRequest)
 		return
+	}
+
+	// Authorization: verify the caller is a participant in this conversation
+	authenticatedUserID := r.Header.Get("X-User-Id")
+	if authenticatedUserID != "" {
+		if err := h.conversationService.ValidateUserInConversation(r.Context(), conversationID, authenticatedUserID); err != nil {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
 	}
 
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))

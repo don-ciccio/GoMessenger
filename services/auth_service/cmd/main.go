@@ -41,6 +41,7 @@ func main() {
 		searchHandler := auth.NewSearchHandler(srv.repo)
 		mux.HandleFunc("GET /users/search", searchHandler.SearchUsers)
 		mux.HandleFunc("POST /users/batch", searchHandler.GetUsers)
+		mux.HandleFunc("POST /users/batch/internal", searchHandler.GetUsersInternal)
 		mux.HandleFunc("POST /users/device-token", searchHandler.AddDeviceToken)
 		mux.HandleFunc("DELETE /users/device-token", searchHandler.RemoveDeviceToken)
 

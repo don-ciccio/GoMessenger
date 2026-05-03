@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"regexp"
 
 	authpb "github.com/Miguel-Pezzini/GoMessenger/services/auth_service/internal/pb"
 	"go.mongodb.org/mongo-driver/bson"
@@ -63,9 +64,10 @@ func (r *MongoRepository) FindByUsername(ctx context.Context, username string) (
 }
 
 func (r *MongoRepository) SearchByUsername(ctx context.Context, query string, limit int) ([]*User, error) {
-	// Use regex for case-insensitive partial match
+	// Escape regex metacharacters to prevent ReDoS and user enumeration via patterns like ".*"
+	escapedQuery := regexp.QuoteMeta(query)
 	filter := bson.M{
-		"username": bson.M{"$regex": query, "$options": "i"},
+		"username": bson.M{"$regex": escapedQuery, "$options": "i"},
 	}
 
 	opts := options.Find().SetLimit(int64(limit))
