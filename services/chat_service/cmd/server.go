@@ -74,6 +74,20 @@ func (s *Server) Start() error {
 	mux.HandleFunc("POST /conversations", conversationHandler.CreateOrGetConversation)
 	mux.HandleFunc("GET /conversations", conversationHandler.ListConversations)
 	mux.HandleFunc("GET /conversations/{id}/messages", conversationHandler.GetConversationMessages)
+	mux.HandleFunc("POST /badge/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		var payload struct {
+			Badge int `json:"badge"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		s.rdb.Set(ctx, "badge:"+id, payload.Badge, 0)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	})
 
 	// Start HTTP server in background
 	go func() {
@@ -201,26 +215,28 @@ func (s *Server) Start() error {
 								DeviceTokens []string `json:"device_tokens"`
 							}
 							if err := json.NewDecoder(resp.Body).Decode(&users); err == nil {
-								// Build recipient token list and find sender's display name
-								var allTokens []string
+								// Extract sender's name and send pushes individually to recipients
 								senderName := "New Message"
 								for _, u := range users {
 									if u.ID == senderID {
-										// Use display name if available, otherwise fall back to username
 										if u.DisplayName != "" {
 											senderName = u.DisplayName
 										} else {
 											senderName = u.Username
 										}
-									} else {
-										allTokens = append(allTokens, u.DeviceTokens...)
 									}
 								}
-								if len(allTokens) > 0 {
-									metadata := map[string]interface{}{
-										"conversation_id": conversationID,
+								
+								for _, u := range users {
+									if u.ID != senderID && len(u.DeviceTokens) > 0 {
+										// Increment badge for this specific user
+										newBadge := s.rdb.Incr(ctx, "badge:"+u.ID).Val()
+										
+										metadata := map[string]interface{}{
+											"conversation_id": conversationID,
+										}
+										chat.SendPushNotification(u.DeviceTokens, senderName, text, metadata, int(newBadge))
 									}
-									chat.SendPushNotification(allTokens, senderName, text, metadata)
 								}
 							}
 						}

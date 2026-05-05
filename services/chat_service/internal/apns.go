@@ -61,7 +61,7 @@ func InitAPNs() {
 	log.Printf("APNs Client initialized (%s)", apnsEnv)
 }
 
-func SendPushNotification(deviceTokens []string, title, body string, metadata map[string]interface{}) {
+func SendPushNotification(deviceTokens []string, title, body string, metadata map[string]interface{}, badgeCount int) {
 	if apnsClient == nil {
 		return
 	}
@@ -82,7 +82,7 @@ func SendPushNotification(deviceTokens []string, title, body string, metadata ma
 						"body":  body,
 					},
 					"sound": "default",
-					"badge": 1,
+					"badge": badgeCount,
 				},
 				"metadata": metadata,
 			},

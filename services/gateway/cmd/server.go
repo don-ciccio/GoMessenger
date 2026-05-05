@@ -145,6 +145,7 @@ func (s *Server) Start() error {
 	mux.Handle("POST /conversations", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
 	mux.Handle("GET /conversations", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
 	mux.Handle("GET /conversations/{id}/messages", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
+	mux.Handle("POST /badge/{id}", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
 
 	// Proxy user search and batch lookup to Auth Service - Protected by JWT
 	authServiceHTTPURL := os.Getenv("AUTH_SERVICE_HTTP_URL")
