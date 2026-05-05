@@ -73,7 +73,10 @@ func (s *Server) Start() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /conversations", conversationHandler.CreateOrGetConversation)
 	mux.HandleFunc("GET /conversations", conversationHandler.ListConversations)
+	mux.HandleFunc("GET /conversations/archived", conversationHandler.ListArchivedConversations)
 	mux.HandleFunc("GET /conversations/{id}/messages", conversationHandler.GetConversationMessages)
+	mux.HandleFunc("POST /conversations/{id}/archive", conversationHandler.ArchiveConversation)
+	mux.HandleFunc("POST /conversations/{id}/unarchive", conversationHandler.UnarchiveConversation)
 	mux.HandleFunc("POST /badge/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		var payload struct {

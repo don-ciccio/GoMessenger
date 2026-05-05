@@ -108,3 +108,73 @@ func (h *ConversationHandler) GetConversationMessages(w http.ResponseWriter, r *
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(messages)
 }
+
+// ArchiveConversation handles POST /conversations/{id}/archive
+func (h *ConversationHandler) ArchiveConversation(w http.ResponseWriter, r *http.Request) {
+	conversationID := r.PathValue("id")
+	if conversationID == "" {
+		http.Error(w, "conversation_id is required", http.StatusBadRequest)
+		return
+	}
+
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := h.conversationService.ArchiveConversation(r.Context(), conversationID, userID); err != nil {
+		http.Error(w, "Failed to archive conversation", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "archived"})
+}
+
+// UnarchiveConversation handles POST /conversations/{id}/unarchive
+func (h *ConversationHandler) UnarchiveConversation(w http.ResponseWriter, r *http.Request) {
+	conversationID := r.PathValue("id")
+	if conversationID == "" {
+		http.Error(w, "conversation_id is required", http.StatusBadRequest)
+		return
+	}
+
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := h.conversationService.UnarchiveConversation(r.Context(), conversationID, userID); err != nil {
+		http.Error(w, "Failed to unarchive conversation", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "unarchived"})
+}
+
+// ListArchivedConversations handles GET /conversations/archived?user_id=xxx
+func (h *ConversationHandler) ListArchivedConversations(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("user_id")
+	if userID == "" {
+		http.Error(w, "user_id is required", http.StatusBadRequest)
+		return
+	}
+
+	authenticatedUserID := r.Header.Get("X-User-Id")
+	if authenticatedUserID != "" && authenticatedUserID != userID {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
+	conversations, err := h.conversationService.ListArchivedConversations(r.Context(), userID)
+	if err != nil {
+		http.Error(w, "Failed to list archived conversations", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(conversations)
+}

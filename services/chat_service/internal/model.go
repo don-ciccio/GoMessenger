@@ -10,6 +10,7 @@ type Conversation struct {
 	LastMessage   string    `bson:"last_message" json:"last_message"`
 	LastMessageAt time.Time `bson:"last_message_at" json:"last_message_at"`
 	CreatedAt     time.Time `bson:"created_at" json:"created_at"`
+	ArchivedBy    []string  `bson:"archived_by,omitempty" json:"archived_by,omitempty"`
 }
 
 type ConversationRequest struct {

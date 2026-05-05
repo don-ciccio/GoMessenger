@@ -144,7 +144,10 @@ func (s *Server) Start() error {
 	// Conversation endpoints (proxy to chat_service) - Protected by JWT
 	mux.Handle("POST /conversations", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
 	mux.Handle("GET /conversations", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
+	mux.Handle("GET /conversations/archived", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
 	mux.Handle("GET /conversations/{id}/messages", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
+	mux.Handle("POST /conversations/{id}/archive", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
+	mux.Handle("POST /conversations/{id}/unarchive", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
 	mux.Handle("POST /badge/{id}", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
 
 	// Proxy user search and batch lookup to Auth Service - Protected by JWT

@@ -16,7 +16,10 @@ type ConversationRepository interface {
 	FindByParticipants(ctx context.Context, participants []string) (*Conversation, error)
 	FindByID(ctx context.Context, id string) (*Conversation, error)
 	ListByUserID(ctx context.Context, userID string, shopID string) ([]*Conversation, error)
+	ListArchivedByUserID(ctx context.Context, userID string) ([]*Conversation, error)
 	UpdateLastMessage(ctx context.Context, conversationID string, message string) error
+	ArchiveForUser(ctx context.Context, conversationID string, userID string) error
+	UnarchiveForUser(ctx context.Context, conversationID string, userID string) error
 }
 
 type MongoConversationRepository struct {
@@ -78,7 +81,13 @@ func (r *MongoConversationRepository) FindByID(ctx context.Context, id string) (
 }
 
 func (r *MongoConversationRepository) ListByUserID(ctx context.Context, userID string, shopID string) ([]*Conversation, error) {
-	filter := bson.M{"participants": userID}
+	filter := bson.M{
+		"participants": userID,
+		"$or": bson.A{
+			bson.M{"archived_by": bson.M{"$exists": false}},
+			bson.M{"archived_by": bson.M{"$nin": bson.A{userID}}},
+		},
+	}
 	if shopID != "" {
 		filter["shop_id"] = shopID
 	}
@@ -98,6 +107,51 @@ func (r *MongoConversationRepository) ListByUserID(ctx context.Context, userID s
 	return conversations, nil
 }
 
+func (r *MongoConversationRepository) ListArchivedByUserID(ctx context.Context, userID string) ([]*Conversation, error) {
+	filter := bson.M{
+		"participants": userID,
+		"archived_by":  userID,
+	}
+	opts := options.Find().SetSort(bson.D{{Key: "last_message_at", Value: -1}})
+
+	cursor, err := r.db.Collection("conversations").Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var conversations []*Conversation
+	if err := cursor.All(ctx, &conversations); err != nil {
+		return nil, err
+	}
+
+	return conversations, nil
+}
+
+func (r *MongoConversationRepository) ArchiveForUser(ctx context.Context, conversationID string, userID string) error {
+	objectID, err := primitive.ObjectIDFromHex(conversationID)
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Collection("conversations").UpdateOne(ctx,
+		bson.M{"_id": objectID},
+		bson.M{"$addToSet": bson.M{"archived_by": userID}},
+	)
+	return err
+}
+
+func (r *MongoConversationRepository) UnarchiveForUser(ctx context.Context, conversationID string, userID string) error {
+	objectID, err := primitive.ObjectIDFromHex(conversationID)
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Collection("conversations").UpdateOne(ctx,
+		bson.M{"_id": objectID},
+		bson.M{"$pull": bson.M{"archived_by": userID}},
+	)
+	return err
+}
+
 func (r *MongoConversationRepository) UpdateLastMessage(ctx context.Context, conversationID string, message string) error {
 	objectID, err := primitive.ObjectIDFromHex(conversationID)
 	if err != nil {
@@ -108,6 +162,9 @@ func (r *MongoConversationRepository) UpdateLastMessage(ctx context.Context, con
 		"$set": bson.M{
 			"last_message":    message,
 			"last_message_at": time.Now(),
+		},
+		"$unset": bson.M{
+			"archived_by": "",
 		},
 	}
 

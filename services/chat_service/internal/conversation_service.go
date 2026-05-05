@@ -43,6 +43,24 @@ func (s *ConversationService) UpdateLastMessage(ctx context.Context, conversatio
 	return s.repo.UpdateLastMessage(ctx, conversationID, message)
 }
 
+func (s *ConversationService) ArchiveConversation(ctx context.Context, conversationID, userID string) error {
+	if err := s.ValidateUserInConversation(ctx, conversationID, userID); err != nil {
+		return err
+	}
+	return s.repo.ArchiveForUser(ctx, conversationID, userID)
+}
+
+func (s *ConversationService) UnarchiveConversation(ctx context.Context, conversationID, userID string) error {
+	if err := s.ValidateUserInConversation(ctx, conversationID, userID); err != nil {
+		return err
+	}
+	return s.repo.UnarchiveForUser(ctx, conversationID, userID)
+}
+
+func (s *ConversationService) ListArchivedConversations(ctx context.Context, userID string) ([]*Conversation, error) {
+	return s.repo.ListArchivedByUserID(ctx, userID)
+}
+
 // GetConversationMessages retrieves messages for a conversation
 func (s *ConversationService) GetConversationMessages(ctx context.Context, repo Repository, conversationID string, limit, offset int) ([]*MessageDB, error) {
 	messages, err := repo.FindByConversationID(ctx, conversationID, limit, offset)
