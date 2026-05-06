@@ -32,3 +32,7 @@ func (s *Service) PersistMessage(msg ChatMessagePayload) error {
 
 	return nil
 }
+
+func (s *Service) PublishInteraction(channel string, event string) error {
+	return s.repo.Publish(channel, event)
+}

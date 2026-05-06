@@ -100,6 +100,44 @@ func (s *Server) Start() error {
 		}
 	}()
 
+	// Start chat.events Pub/Sub subscriber for delivery/read receipts
+	chatEventsChannel := os.Getenv("REDIS_CHANNEL_CHAT_EVENTS")
+	if chatEventsChannel == "" {
+		chatEventsChannel = "chat.events"
+	}
+	go func() {
+		pubsub := s.rdb.Subscribe(ctx, chatEventsChannel)
+		ch := pubsub.Channel()
+		log.Println("Subscribed to", chatEventsChannel, "for read receipts")
+		for msg := range ch {
+			var event chat.InteractionEvent
+			if err := json.Unmarshal([]byte(msg.Payload), &event); err != nil {
+				log.Println("failed to decode interaction event:", err)
+				continue
+			}
+
+			switch event.Type {
+			case "message_delivered":
+				if event.MessageID != "" {
+					if err := messageRepo.UpdateViewedStatus(ctx, event.MessageID, chat.ViewedStatusDelivered); err != nil {
+						log.Println("failed to update viewed_status to delivered:", err)
+					}
+				}
+			case "message_seen":
+				// Batch: mark all messages from the sender in this conversation as seen
+				if event.ConversationID != "" && event.TargetUserID != "" {
+					if err := messageRepo.MarkConversationSeen(ctx, event.ConversationID, event.TargetUserID); err != nil {
+						log.Println("failed to batch-mark conversation as seen:", err)
+					}
+				} else if event.MessageID != "" {
+					if err := messageRepo.UpdateViewedStatus(ctx, event.MessageID, chat.ViewedStatusSeen); err != nil {
+						log.Println("failed to update viewed_status to seen:", err)
+					}
+				}
+			}
+		}
+	}()
+
 	// Start Redis stream consumer
 	streamName := s.redisConfig.StreamChat
 

@@ -2,6 +2,13 @@ package chat
 
 import "time"
 
+// Viewed-status lifecycle: sent → delivered → seen
+const (
+	ViewedStatusSent      = "sent"
+	ViewedStatusDelivered = "delivered"
+	ViewedStatusSeen      = "seen"
+)
+
 // Conversation represents a chat between 2+ users
 type Conversation struct {
 	ID            string    `bson:"_id,omitempty" json:"id"`
@@ -33,6 +40,7 @@ type MessageDB struct {
 	ReceiverID     string `bson:"receiver_id,omitempty" json:"receiver_id,omitempty"` // Deprecated
 	Content        string `bson:"content" json:"content"`
 	Timestamp      int64  `bson:"timestamp" json:"timestamp"`
+	ViewedStatus   string `bson:"viewed_status,omitempty" json:"viewed_status,omitempty"`
 }
 
 type MessageResponse struct {
@@ -43,4 +51,40 @@ type MessageResponse struct {
 	Recipients     []string `json:"recipients,omitempty"` // List of user IDs to receive the message
 	Content        string   `json:"content"`
 	Timestamp      int64    `json:"timestamp,omitempty"`
+	ViewedStatus   string   `json:"viewed_status,omitempty"`
+}
+
+// InteractionEvent is received from the gateway via Redis Pub/Sub
+// when a client sends message_delivered or message_seen.
+type InteractionEvent struct {
+	Type           string `json:"type"`
+	ActorUserID    string `json:"actor_user_id"`
+	TargetUserID   string `json:"target_user_id"`
+	MessageID      string `json:"message_id,omitempty"`
+	ConversationID string `json:"conversation_id,omitempty"`
+	ViewedStatus   string `json:"viewed_status,omitempty"`
+}
+
+// NormalizeViewedStatus maps any input to a known status; defaults to "sent".
+func NormalizeViewedStatus(status string) string {
+	switch status {
+	case ViewedStatusDelivered:
+		return ViewedStatusDelivered
+	case ViewedStatusSeen:
+		return ViewedStatusSeen
+	default:
+		return ViewedStatusSent
+	}
+}
+
+// ViewedStatusRank returns a numeric rank so we can enforce monotonic upgrades.
+func ViewedStatusRank(status string) int {
+	switch NormalizeViewedStatus(status) {
+	case ViewedStatusDelivered:
+		return 1
+	case ViewedStatusSeen:
+		return 2
+	default:
+		return 0
+	}
 }

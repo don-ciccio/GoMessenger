@@ -145,6 +145,60 @@ func (h *WsHandler) HandleConnection(w http.ResponseWriter, r *http.Request) {
 				payload.SenderID = userID // Enforce authenticated user ID
 				h.service.PersistMessage(payload)
 			}
+		case MessageTypeDelivered, MessageTypeSeen:
+			{
+				var payload InteractionPayload
+				if err := json.Unmarshal(gatewayMessage.Payload, &payload); err != nil {
+					log.Println("Failed to decode interaction payload:", err)
+					break
+				}
+
+				// Publish to chat.events so chat_service persists the status update
+				chatEventsChannel := os.Getenv("REDIS_CHANNEL_CHAT_EVENTS")
+				if chatEventsChannel == "" {
+					chatEventsChannel = "chat.events"
+				}
+				event := map[string]string{
+					"type":           string(gatewayMessage.Type),
+					"actor_user_id":  userID,
+					"target_user_id": payload.TargetUserID,
+				}
+				if payload.MessageID != "" {
+					event["message_id"] = payload.MessageID
+				}
+				if payload.ConversationID != "" {
+					event["conversation_id"] = payload.ConversationID
+				}
+				eventJSON, _ := json.Marshal(event)
+				if err := h.service.PublishInteraction(chatEventsChannel, string(eventJSON)); err != nil {
+					log.Println("Failed to publish interaction event:", err)
+				}
+
+				// Map event type to clean viewed_status value
+				viewedStatus := "sent"
+				if gatewayMessage.Type == MessageTypeDelivered {
+					viewedStatus = "delivered"
+				} else if gatewayMessage.Type == MessageTypeSeen {
+					viewedStatus = "seen"
+				}
+
+				// Forward to the message sender so their checkmarks update in real-time
+				statusUpdate := map[string]interface{}{
+					"type":          string(gatewayMessage.Type),
+					"viewed_status": viewedStatus,
+				}
+				if payload.MessageID != "" {
+					statusUpdate["message_id"] = payload.MessageID
+				}
+				if payload.ConversationID != "" {
+					statusUpdate["conversation_id"] = payload.ConversationID
+				}
+				h.clientsM.RLock()
+				if senderConn, ok := h.clients[payload.TargetUserID]; ok {
+					senderConn.WriteJSON(statusUpdate)
+				}
+				h.clientsM.RUnlock()
+			}
 		}
 	}
 

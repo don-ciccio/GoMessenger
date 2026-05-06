@@ -83,10 +83,7 @@ func (r *MongoConversationRepository) FindByID(ctx context.Context, id string) (
 func (r *MongoConversationRepository) ListByUserID(ctx context.Context, userID string, shopID string) ([]*Conversation, error) {
 	filter := bson.M{
 		"participants": userID,
-		"$or": bson.A{
-			bson.M{"archived_by": bson.M{"$exists": false}},
-			bson.M{"archived_by": bson.M{"$nin": bson.A{userID}}},
-		},
+		"archived_by":  bson.M{"$nin": bson.A{userID}},
 	}
 	if shopID != "" {
 		filter["shop_id"] = shopID

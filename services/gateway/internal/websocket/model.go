@@ -9,7 +9,16 @@ const (
 	MessageTypeChangeChat  MessageType = "change_chat"
 	MessageTypeTypingStart MessageType = "typing_start"
 	MessageTypeTypingStop  MessageType = "typing_stop"
+	MessageTypeDelivered   MessageType = "message_delivered"
+	MessageTypeSeen        MessageType = "message_seen"
 )
+
+// InteractionPayload is the payload for message_delivered / message_seen events.
+type InteractionPayload struct {
+	TargetUserID   string `json:"target_user_id"`
+	MessageID      string `json:"message_id,omitempty"`
+	ConversationID string `json:"conversation_id,omitempty"`
+}
 
 type GatewayMessage struct {
 	Type      MessageType     `json:"type"`
@@ -51,4 +60,5 @@ type MessageResponse struct {
 	Recipients     []string `json:"recipients,omitempty"`  // List of user IDs to receive the message
 	Content        string   `json:"content"`
 	Timestamp      int64    `json:"timestamp,omitempty"`
+	ViewedStatus   string   `json:"viewed_status,omitempty"`
 }
