@@ -69,7 +69,10 @@ func (r *MongoRepository) SearchByUsername(ctx context.Context, query string, li
 	// Escape regex metacharacters to prevent ReDoS and user enumeration via patterns like ".*"
 	escapedQuery := regexp.QuoteMeta(query)
 	filter := bson.M{
-		"username": bson.M{"$regex": escapedQuery, "$options": "i"},
+		"$or": bson.A{
+			bson.M{"username": bson.M{"$regex": escapedQuery, "$options": "i"}},
+			bson.M{"display_name": bson.M{"$regex": escapedQuery, "$options": "i"}},
+		},
 	}
 
 	opts := options.Find().SetLimit(int64(limit))
