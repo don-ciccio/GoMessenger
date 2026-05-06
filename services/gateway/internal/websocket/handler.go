@@ -149,9 +149,12 @@ func (h *WsHandler) HandleConnection(w http.ResponseWriter, r *http.Request) {
 			{
 				var payload InteractionPayload
 				if err := json.Unmarshal(gatewayMessage.Payload, &payload); err != nil {
-					log.Println("Failed to decode interaction payload:", err)
+					log.Printf("[Receipts] Failed to decode interaction payload: %v\n", err)
 					break
 				}
+
+				log.Printf("[Receipts] Received %s from User %s targeting User %s (Conv: %s, Msg: %s)\n", 
+					gatewayMessage.Type, userID, payload.TargetUserID, payload.ConversationID, payload.MessageID)
 
 				// Publish to chat.events so chat_service persists the status update
 				chatEventsChannel := os.Getenv("REDIS_CHANNEL_CHAT_EVENTS")
@@ -171,7 +174,9 @@ func (h *WsHandler) HandleConnection(w http.ResponseWriter, r *http.Request) {
 				}
 				eventJSON, _ := json.Marshal(event)
 				if err := h.service.PublishInteraction(chatEventsChannel, string(eventJSON)); err != nil {
-					log.Println("Failed to publish interaction event:", err)
+					log.Printf("[Receipts] Failed to publish interaction event to redis: %v\n", err)
+				} else {
+					log.Printf("[Receipts] Successfully published %s to %s\n", gatewayMessage.Type, chatEventsChannel)
 				}
 
 				// Map event type to clean viewed_status value
@@ -195,7 +200,10 @@ func (h *WsHandler) HandleConnection(w http.ResponseWriter, r *http.Request) {
 				}
 				h.clientsM.RLock()
 				if senderConn, ok := h.clients[payload.TargetUserID]; ok {
-					senderConn.WriteJSON(statusUpdate)
+					err := senderConn.WriteJSON(statusUpdate)
+					log.Printf("[Receipts] Forwarded %s to target User %s (err: %v)\n", gatewayMessage.Type, payload.TargetUserID, err)
+				} else {
+					log.Printf("[Receipts] Target User %s is not connected, skipped forwarding over WS\n", payload.TargetUserID)
 				}
 				h.clientsM.RUnlock()
 			}

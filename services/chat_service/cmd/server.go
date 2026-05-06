@@ -112,26 +112,35 @@ func (s *Server) Start() error {
 		for msg := range ch {
 			var event chat.InteractionEvent
 			if err := json.Unmarshal([]byte(msg.Payload), &event); err != nil {
-				log.Println("failed to decode interaction event:", err)
+				log.Printf("[Receipts] failed to decode interaction event: %v\n", err)
 				continue
 			}
+
+			log.Printf("[Receipts] Processing %s for Conv %s, Msg %s, TargetUser %s\n", 
+				event.Type, event.ConversationID, event.MessageID, event.TargetUserID)
 
 			switch event.Type {
 			case "message_delivered":
 				if event.MessageID != "" {
 					if err := messageRepo.UpdateViewedStatus(ctx, event.MessageID, chat.ViewedStatusDelivered); err != nil {
-						log.Println("failed to update viewed_status to delivered:", err)
+						log.Printf("[Receipts] failed to update viewed_status to delivered: %v\n", err)
+					} else {
+						log.Printf("[Receipts] Successfully updated msg %s to delivered\n", event.MessageID)
 					}
 				}
 			case "message_seen":
 				// Batch: mark all messages from the sender in this conversation as seen
 				if event.ConversationID != "" && event.TargetUserID != "" {
 					if err := messageRepo.MarkConversationSeen(ctx, event.ConversationID, event.TargetUserID); err != nil {
-						log.Println("failed to batch-mark conversation as seen:", err)
+						log.Printf("[Receipts] failed to batch-mark conversation as seen: %v\n", err)
+					} else {
+						log.Printf("[Receipts] Successfully batch-marked conv %s targeting user %s as seen\n", event.ConversationID, event.TargetUserID)
 					}
 				} else if event.MessageID != "" {
 					if err := messageRepo.UpdateViewedStatus(ctx, event.MessageID, chat.ViewedStatusSeen); err != nil {
-						log.Println("failed to update viewed_status to seen:", err)
+						log.Printf("[Receipts] failed to update viewed_status to seen: %v\n", err)
+					} else {
+						log.Printf("[Receipts] Successfully updated msg %s to seen\n", event.MessageID)
 					}
 				}
 			}
