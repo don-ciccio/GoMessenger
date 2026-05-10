@@ -39,8 +39,8 @@ func (s *ConversationService) ListUserConversations(ctx context.Context, userID 
 	return s.repo.ListByUserID(ctx, userID, shopID)
 }
 
-func (s *ConversationService) UpdateLastMessage(ctx context.Context, conversationID string, message string) error {
-	return s.repo.UpdateLastMessage(ctx, conversationID, message)
+func (s *ConversationService) UpdateLastMessage(ctx context.Context, conversationID string, message string, senderID string) error {
+	return s.repo.UpdateLastMessage(ctx, conversationID, message, senderID)
 }
 
 func (s *ConversationService) ArchiveConversation(ctx context.Context, conversationID, userID string) error {

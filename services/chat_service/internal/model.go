@@ -14,8 +14,9 @@ type Conversation struct {
 	ID            string    `bson:"_id,omitempty" json:"id"`
 	Participants  []string  `bson:"participants" json:"participants"` // User IDs
 	ShopID        string    `bson:"shop_id,omitempty" json:"shop_id,omitempty"` // Shopify store domain (for merchant conversations)
-	LastMessage   string    `bson:"last_message" json:"last_message"`
-	LastMessageAt time.Time `bson:"last_message_at" json:"last_message_at"`
+	LastMessage         string    `bson:"last_message" json:"last_message"`
+	LastMessageAt       time.Time `bson:"last_message_at" json:"last_message_at"`
+	LastMessageSenderID string    `bson:"last_message_sender_id,omitempty" json:"last_message_sender_id,omitempty"`
 	CreatedAt     time.Time `bson:"created_at" json:"created_at"`
 	ArchivedBy    []string  `bson:"archived_by,omitempty" json:"archived_by,omitempty"`
 }
@@ -44,6 +45,7 @@ type MessageDB struct {
 	Timestamp      int64  `bson:"timestamp" json:"timestamp"`
 	ViewedStatus   string `bson:"viewed_status,omitempty" json:"viewed_status,omitempty"`
 	BroadcastID    string `bson:"broadcast_id,omitempty" json:"broadcast_id,omitempty"`
+	Tag            string `bson:"tag,omitempty" json:"tag,omitempty"`
 }
 
 type MessageResponse struct {
@@ -56,6 +58,7 @@ type MessageResponse struct {
 	Timestamp      int64    `json:"timestamp,omitempty"`
 	ViewedStatus   string   `json:"viewed_status,omitempty"`
 	BroadcastID    string   `json:"broadcast_id,omitempty"`
+	Tag            string   `json:"tag,omitempty"`
 }
 
 // InteractionEvent is received from the gateway via Redis Pub/Sub

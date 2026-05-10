@@ -214,7 +214,7 @@ func (s *Server) Start() error {
 
 				// Update conversation's last message and set recipients
 				if req.ConversationID != "" {
-					conversationService.UpdateLastMessage(ctx, req.ConversationID, req.Content)
+					conversationService.UpdateLastMessage(ctx, req.ConversationID, req.Content, req.SenderID)
 					if conversation != nil {
 						messageResponse.Recipients = conversation.Participants
 					}

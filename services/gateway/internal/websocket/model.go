@@ -64,4 +64,5 @@ type MessageResponse struct {
 	Timestamp      int64    `json:"timestamp,omitempty"`
 	ViewedStatus   string   `json:"viewed_status,omitempty"`
 	BroadcastID    string   `json:"broadcast_id,omitempty"`
+	Tag            string   `json:"tag,omitempty"`
 }
