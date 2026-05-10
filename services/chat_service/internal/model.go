@@ -31,6 +31,8 @@ type MessageRequest struct {
 	ReceiverID     string `json:"receiver_id,omitempty"` // Deprecated, use ConversationID
 	Content        string `json:"content"`
 	Timestamp      int64  `json:"timestamp,omitempty"`
+	BroadcastID    string `json:"broadcast_id,omitempty"`
+	Tag            string `json:"tag,omitempty"` // Custom push notification title for broadcasts
 }
 
 type MessageDB struct {
@@ -41,6 +43,7 @@ type MessageDB struct {
 	Content        string `bson:"content" json:"content"`
 	Timestamp      int64  `bson:"timestamp" json:"timestamp"`
 	ViewedStatus   string `bson:"viewed_status,omitempty" json:"viewed_status,omitempty"`
+	BroadcastID    string `bson:"broadcast_id,omitempty" json:"broadcast_id,omitempty"`
 }
 
 type MessageResponse struct {
@@ -52,6 +55,7 @@ type MessageResponse struct {
 	Content        string   `json:"content"`
 	Timestamp      int64    `json:"timestamp,omitempty"`
 	ViewedStatus   string   `json:"viewed_status,omitempty"`
+	BroadcastID    string   `json:"broadcast_id,omitempty"`
 }
 
 // InteractionEvent is received from the gateway via Redis Pub/Sub
@@ -87,4 +91,26 @@ func ViewedStatusRank(status string) int {
 	default:
 		return 0
 	}
+}
+
+// Broadcast represents a mass message sent to multiple merchants
+type Broadcast struct {
+	ID              string    `bson:"_id,omitempty" json:"id"`
+	SenderID        string    `bson:"sender_id" json:"sender_id"`
+	Content         string    `bson:"content" json:"content"`
+	Tag             string    `bson:"tag" json:"tag"`
+	RecipientIDs    []string  `bson:"recipient_ids" json:"recipient_ids"`
+	ConversationIDs []string  `bson:"conversation_ids,omitempty" json:"conversation_ids,omitempty"`
+	TotalCount      int       `bson:"total_count" json:"total_count"`
+	SuccessCount    int       `bson:"success_count" json:"success_count"`
+	FailureCount    int       `bson:"failure_count" json:"failure_count"`
+	Status          string    `bson:"status" json:"status"` // pending | sending | completed | failed
+	CreatedAt       time.Time `bson:"created_at" json:"created_at"`
+	CompletedAt     time.Time `bson:"completed_at,omitempty" json:"completed_at,omitempty"`
+}
+
+type BroadcastRequest struct {
+	RecipientIDs []string `json:"recipient_ids"`
+	Content      string   `json:"content"`
+	Tag          string   `json:"tag"`
 }

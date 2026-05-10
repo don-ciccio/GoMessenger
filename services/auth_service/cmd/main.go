@@ -45,6 +45,7 @@ func main() {
 		mux.HandleFunc("POST /users/device-token", searchHandler.AddDeviceToken)
 		mux.HandleFunc("DELETE /users/device-token", searchHandler.RemoveDeviceToken)
 		mux.HandleFunc("PUT /users/display-name", searchHandler.UpdateDisplayName)
+		mux.HandleFunc("GET /users/all", searchHandler.ListAllUsers)
 
 		log.Println("AuthService HTTP API running on port 8082")
 		if err := http.ListenAndServe(":8082", corsMiddleware(mux)); err != nil {

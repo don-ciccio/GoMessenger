@@ -34,6 +34,8 @@ type ChatMessagePayload struct {
 	ShopID         string `json:"shop_id,omitempty"` // Shopify store domain (set by WS proxy)
 	Content        string `json:"content"`
 	Timestamp      int64  `json:"timestamp,omitempty"`
+	BroadcastID    string `json:"broadcast_id,omitempty"`
+	Tag            string `json:"tag,omitempty"` // Custom push notification title for broadcasts
 }
 
 type TypingPayload struct {
@@ -61,4 +63,5 @@ type MessageResponse struct {
 	Content        string   `json:"content"`
 	Timestamp      int64    `json:"timestamp,omitempty"`
 	ViewedStatus   string   `json:"viewed_status,omitempty"`
+	BroadcastID    string   `json:"broadcast_id,omitempty"`
 }

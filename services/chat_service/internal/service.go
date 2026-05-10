@@ -18,6 +18,7 @@ func (s *Service) Create(ctx context.Context, req MessageRequest) (*MessageRespo
 		Content:        req.Content,
 		Timestamp:      req.Timestamp,
 		ViewedStatus:   ViewedStatusSent,
+		BroadcastID:    req.BroadcastID,
 	}
 	result, err := s.repo.Create(ctx, messageDB)
 	if err != nil {

@@ -224,3 +224,58 @@ func (h *SearchHandler) UpdateDisplayName(w http.ResponseWriter, r *http.Request
 
 	w.WriteHeader(http.StatusOK)
 }
+
+type ListAllUsersResponse struct {
+	Users []UserResponse `json:"users"`
+	Total int64          `json:"total"`
+}
+
+func (h *SearchHandler) ListAllUsers(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		http.Error(w, `{"error":"Unauthorized"}`, http.StatusUnauthorized)
+		return
+	}
+
+	limitStr := r.URL.Query().Get("limit")
+	limit := 100
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+	if limit > 500 {
+		limit = 500
+	}
+
+	offsetStr := r.URL.Query().Get("offset")
+	offset := 0
+	if offsetStr != "" {
+		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
+			offset = o
+		}
+	}
+
+	ctx := context.Background()
+	users, total, err := h.repo.ListAllUsers(ctx, userID, limit, offset)
+	if err != nil {
+		http.Error(w, `{"error":"Failed to list users"}`, http.StatusInternalServerError)
+		return
+	}
+
+	response := make([]UserResponse, len(users))
+	for i, user := range users {
+		response[i] = UserResponse{
+			ID:          user.ID,
+			Username:    user.Username,
+			DisplayName: user.DisplayName,
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ListAllUsersResponse{
+		Users: response,
+		Total: total,
+	})
+}
+

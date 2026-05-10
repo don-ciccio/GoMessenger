@@ -9,5 +9,6 @@ func MessageResponseFromMessageDB(messageDB *MessageDB) *MessageResponse {
 		Content:        messageDB.Content,
 		Timestamp:      messageDB.Timestamp,
 		ViewedStatus:   NormalizeViewedStatus(messageDB.ViewedStatus),
+		BroadcastID:    messageDB.BroadcastID,
 	}
 }

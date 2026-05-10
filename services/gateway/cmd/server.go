@@ -149,6 +149,9 @@ func (s *Server) Start() error {
 	mux.Handle("POST /conversations/{id}/archive", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
 	mux.Handle("POST /conversations/{id}/unarchive", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
 	mux.Handle("POST /badge/{id}", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
+	mux.Handle("POST /broadcasts", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
+	mux.Handle("GET /broadcasts", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
+	mux.Handle("GET /broadcasts/{id}", auth.JWTMiddleware(http.HandlerFunc(proxyToConversationService)))
 
 	// Proxy user search and batch lookup to Auth Service - Protected by JWT
 	authServiceHTTPURL := os.Getenv("AUTH_SERVICE_HTTP_URL")
@@ -168,6 +171,9 @@ func (s *Server) Start() error {
 		proxyToService(w, r, authServiceHTTPURL)
 	})))
 	mux.Handle("PUT /users/display-name", auth.JWTMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		proxyToService(w, r, authServiceHTTPURL)
+	})))
+	mux.Handle("GET /users/all", auth.JWTMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		proxyToService(w, r, authServiceHTTPURL)
 	})))
 

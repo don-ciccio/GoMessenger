@@ -177,3 +177,47 @@ func (r *MongoRepository) UpdateDisplayName(ctx context.Context, userID, display
 	_, err = r.collection.UpdateOne(ctx, filter, update)
 	return err
 }
+
+func (r *MongoRepository) ListAllUsers(ctx context.Context, excludeID string, limit, offset int) ([]*User, int64, error) {
+	filter := bson.M{}
+	if excludeID != "" {
+		if oid, err := primitive.ObjectIDFromHex(excludeID); err == nil {
+			filter["_id"] = bson.M{"$ne": oid}
+		}
+	}
+
+	// Count total for pagination
+	total, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	opts := options.Find().
+		SetSort(bson.D{{Key: "display_name", Value: 1}, {Key: "username", Value: 1}}).
+		SetProjection(bson.M{"password": 0, "device_tokens": 0}).
+		SetLimit(int64(limit)).
+		SetSkip(int64(offset))
+
+	cursor, err := r.collection.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var usersMongo []UserMongo
+	if err := cursor.All(ctx, &usersMongo); err != nil {
+		return nil, 0, err
+	}
+
+	users := make([]*User, len(usersMongo))
+	for i, um := range usersMongo {
+		users[i] = &User{
+			ID:          um.ID.Hex(),
+			Username:    um.Username,
+			DisplayName: um.DisplayName,
+		}
+	}
+
+	return users, total, nil
+}
+

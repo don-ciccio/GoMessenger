@@ -69,6 +69,11 @@ func (s *Server) Start() error {
 	// Initialize handlers
 	conversationHandler := chat.NewConversationHandler(conversationService, messageRepo)
 
+	// Initialize broadcast handler
+	broadcastRepo := chat.NewMongoBroadcastRepository(s.mongo)
+	broadcastHandler := chat.NewBroadcastHandler(
+		broadcastRepo, conversationService, s.rdb, s.redisConfig.StreamChat)
+
 	// Setup HTTP routes
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /conversations", conversationHandler.CreateOrGetConversation)
@@ -77,6 +82,9 @@ func (s *Server) Start() error {
 	mux.HandleFunc("GET /conversations/{id}/messages", conversationHandler.GetConversationMessages)
 	mux.HandleFunc("POST /conversations/{id}/archive", conversationHandler.ArchiveConversation)
 	mux.HandleFunc("POST /conversations/{id}/unarchive", conversationHandler.UnarchiveConversation)
+	mux.HandleFunc("POST /broadcasts", broadcastHandler.CreateBroadcast)
+	mux.HandleFunc("GET /broadcasts", broadcastHandler.ListBroadcasts)
+	mux.HandleFunc("GET /broadcasts/{id}", broadcastHandler.GetBroadcast)
 	mux.HandleFunc("POST /badge/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		var payload struct {
@@ -226,7 +234,7 @@ func (s *Server) Start() error {
 
 				// Send APNs Push Notification to all recipients except the sender
 				if conversation != nil {
-					go func(senderID string, text string, conversationID string, participants []string) {
+					go func(senderID string, text string, conversationID string, participants []string, tag string) {
 						var recipientIDs []string
 						for _, p := range participants {
 							if p != senderID {
@@ -266,13 +274,19 @@ func (s *Server) Start() error {
 							}
 							if err := json.NewDecoder(resp.Body).Decode(&users); err == nil {
 								// Extract sender's name and send pushes individually to recipients
+								// Use broadcast tag as push title when present,
+								// otherwise fall back to sender's display name.
 								senderName := "New Message"
-								for _, u := range users {
-									if u.ID == senderID {
-										if u.DisplayName != "" {
-											senderName = u.DisplayName
-										} else {
-											senderName = u.Username
+								if tag != "" {
+									senderName = tag
+								} else {
+									for _, u := range users {
+										if u.ID == senderID {
+											if u.DisplayName != "" {
+												senderName = u.DisplayName
+											} else {
+												senderName = u.Username
+											}
 										}
 									}
 								}
@@ -290,7 +304,7 @@ func (s *Server) Start() error {
 								}
 							}
 						}
-					}(req.SenderID, req.Content, req.ConversationID, conversation.Participants)
+					}(req.SenderID, req.Content, req.ConversationID, conversation.Participants, req.Tag)
 				}
 
 				if err := s.rdb.XDel(ctx, streamName, msg.ID).Err(); err != nil {
