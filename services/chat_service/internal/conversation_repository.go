@@ -17,7 +17,7 @@ type ConversationRepository interface {
 	FindByID(ctx context.Context, id string) (*Conversation, error)
 	ListByUserID(ctx context.Context, userID string, shopID string) ([]*Conversation, error)
 	ListArchivedByUserID(ctx context.Context, userID string) ([]*Conversation, error)
-	UpdateLastMessage(ctx context.Context, conversationID string, message string, senderID string) error
+	UpdateLastMessage(ctx context.Context, conversationID string, message string, senderID string, skipUnarchive bool) error
 	ArchiveForUser(ctx context.Context, conversationID string, userID string) error
 	UnarchiveForUser(ctx context.Context, conversationID string, userID string) error
 }
@@ -149,7 +149,7 @@ func (r *MongoConversationRepository) UnarchiveForUser(ctx context.Context, conv
 	return err
 }
 
-func (r *MongoConversationRepository) UpdateLastMessage(ctx context.Context, conversationID string, message string, senderID string) error {
+func (r *MongoConversationRepository) UpdateLastMessage(ctx context.Context, conversationID string, message string, senderID string, skipUnarchive bool) error {
 	objectID, err := primitive.ObjectIDFromHex(conversationID)
 	if err != nil {
 		return err
@@ -164,8 +164,12 @@ func (r *MongoConversationRepository) UpdateLastMessage(ctx context.Context, con
 	}
 
 	update := bson.M{
-		"$set":   setFields,
-		"$unset": bson.M{"archived_by": ""},
+		"$set": setFields,
+	}
+	// Normal messages unarchive the conversation so the recipient sees it.
+	// Broadcasts skip this to preserve the admin's archive organization.
+	if !skipUnarchive {
+		update["$unset"] = bson.M{"archived_by": ""}
 	}
 
 	_, err = r.db.Collection("conversations").UpdateOne(ctx, bson.M{"_id": objectID}, update)
